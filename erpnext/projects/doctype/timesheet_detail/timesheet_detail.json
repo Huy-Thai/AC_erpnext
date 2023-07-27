@@ -46,7 +46,7 @@
   {
    "columns": 2,
    "fieldname": "from_time",
-   "fieldtype": "Datetime",
+   "fieldtype": "Date",
    "in_list_view": 1,
    "label": "From Time"
   },
@@ -68,7 +68,7 @@
   },
   {
    "fieldname": "to_time",
-   "fieldtype": "Datetime",
+   "fieldtype": "Date",
    "label": "To Time"
   },
   {
