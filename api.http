@@ -33,3 +33,43 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJub25jZSI6IjJqVDBaRWRoY1pLc1kzTFB6YXl4OE
 
 GET https://graph.microsoft.com/v1.0/sites/aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d/drive/items/01EFHQ6NGA3QA2VHZ525CLZR2EJ3ASYFBG/workbook  HTTP/1.1
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJub25jZSI6ImQ4QW52NnRTUk1ERUZHT3d0X1YwOXR5d3dVR0s0SE1vUHppaDNsZklRTWciLCJhbGciOiJSUzI1NiIsIng1dCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyIsImtpZCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyJ9.eyJhdWQiOiJodHRwczovL2dyYXBoLm1pY3Jvc29mdC5jb20vIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvYWNmZGUxNTctODYzNi00OTUyLWI0ZTMtZWQ4ZmQ4ZTI3NGU5LyIsImlhdCI6MTY5MTEzNzYwNiwibmJmIjoxNjkxMTM3NjA2LCJleHAiOjE2OTExNDE1MDYsImFpbyI6IkUyRmdZTGhXbWhQUzRuQ2ljSFBEdTVRcG0rZWtBZ0E9IiwiYXBwX2Rpc3BsYXluYW1lIjoiRVJQIEdyYXBoIiwiYXBwaWQiOiJjOWViMTU3Yy1hODU0LTQ0MzgtYWNhMi0wYTcyYjY4NjZjOGYiLCJhcHBpZGFjciI6IjEiLCJpZHAiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9hY2ZkZTE1Ny04NjM2LTQ5NTItYjRlMy1lZDhmZDhlMjc0ZTkvIiwiaWR0eXAiOiJhcHAiLCJvaWQiOiI0OTM4ZTE2Yi00OTVjLTRhZWItYmFjYS00OWJmMDliMjhjNTMiLCJyaCI6IjAuQVhJQVYtSDlyRGFHVWttMDQtMlAyT0owNlFNQUFBQUFBQUFBd0FBQUFBQUFBQUREQUFBLiIsInJvbGVzIjpbIkZpbGVzLlJlYWRXcml0ZS5BbGwiLCJCcm93c2VyU2l0ZUxpc3RzLlJlYWRXcml0ZS5BbGwiLCJTaXRlcy5GdWxsQ29udHJvbC5BbGwiXSwic3ViIjoiNDkzOGUxNmItNDk1Yy00YWViLWJhY2EtNDliZjA5YjI4YzUzIiwidGVuYW50X3JlZ2lvbl9zY29wZSI6IkFTIiwidGlkIjoiYWNmZGUxNTctODYzNi00OTUyLWI0ZTMtZWQ4ZmQ4ZTI3NGU5IiwidXRpIjoiOWhhSFAxajZKRW1YX25lZ2ttZ1NBQSIsInZlciI6IjEuMCIsIndpZHMiOlsiMDk5N2ExZDAtMGQxZC00YWNiLWI0MDgtZDVjYTczMTIxZTkwIl0sInhtc190Y2R0IjoxNTAyMDk5ODE0fQ.huohXWzFj6RH3sm8j2sBygpVdRYvoZ3iSyF0sFupMoHIYTFkzAwHdTan_n7k9wB7-TI33Z8cuqDiafbw-O7wL6j93ccpjR-T4eBU6KhmYcU92NB70S9kMOiNn5gGGc8BksH9pP6xTpa804cHkoVbrz-KbNwcyIQXRNe7lNMocAsBXPmrVD_MMiSLjGbRls4YdsIDr78-o5z_qmIzrBMs1vWMXYYcz73RxXO18yjip7keH2xrtt46SWp-g18w1qSHoh5EuexNFUvuNBkMSrBeENGOXTFDMIEwK-LGPXYm-4XJeH4aXnBljorwPYdA2zqULnWu5COen24tj-_LOZf__Q
+
+# ERP DEV API
+###
+
+POST https://acerp-dev.pandion.vn/api/method/login HTTP/1.1
+content-type: application/json
+
+{
+    "usr": "Administrator",
+    "pwd": ""
+}
+
+###
+
+GET https://acerp-dev.pandion.vn/api/resource/Task HTTP/1.1
+
+###
+
+POST https://acerp-dev.pandion.vn/api/resource/Task HTTP/1.1
+content-type: application/json
+
+{
+    "custom_no": "",
+    "subject": "",
+    "project": "",
+
+    "status": "Open",
+    "priority": "",
+    "is_group": "",
+    "parent_task": "",
+
+    "exp_start_date": "2023-05-17",
+    "exp_end_date": "2023-05-18",
+    "expected_time": "",
+    "progress": "",
+    "is_milestone": "",
+
+    "description": "",
+    "custom_excel_no": ""
+}
