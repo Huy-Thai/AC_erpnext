@@ -144,11 +144,15 @@ def excel_style(row, col):
 
 def convert_date(raw):
     from datetime import datetime
-    if raw is None or raw == "": return ""
+    try:
+        if raw is None or raw == "": return ""
 
-    date_str = raw[:-2] + f"20{raw[-2:]}"
-    date_object = datetime.strptime(date_str, '%m/%d/%Y')
-    return date_object
+        date_str = raw[:-2] + f"20{raw[-2:]}"
+        date_object = datetime.strptime(date_str, '%m/%d/%Y')
+        return date_object
+    except Exception as err:
+        print(err)
+        return ""
 
 
 def frappe_assign(email, doctype, docname):
