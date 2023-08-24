@@ -2,7 +2,6 @@ Accounts
 CRM
 Buying
 Projects
-MS Graph
 Selling
 Setup
 Manufacturing

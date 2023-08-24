@@ -60,7 +60,7 @@ content-type: application/json
     "project": "",
 
     "status": "Open",
-    "priority": "",
+    "priority": "Medium",
     "is_group": "",
     "parent_task": "",
 
@@ -70,6 +70,5 @@ content-type: application/json
     "progress": "",
     "is_milestone": "",
 
-    "description": "",
-    "custom_excel_no": ""
+    "description": ""
 }
