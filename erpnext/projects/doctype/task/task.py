@@ -12,7 +12,7 @@ from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getda
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
-from utilities.ms_graph import get_tasks_from_excel, convert_date, frappe_assign
+from erpnext.utilities.ms_graph import get_tasks_from_excel, convert_date, frappe_assign
 
 class CircularReferenceError(frappe.ValidationError):
 	pass
