@@ -390,19 +390,8 @@ def on_doctype_update():
 
 async def handler_insert_task():
     TASK_REQUIRED_COLUMN = ["B", "C", "E", "F", "L", "M", "N", "O", "P"]
-    TASK_PRIORITY = { "": "",
-                     "1_Urgen": "Urgent",
-                     "2_Important": "High",
-                     "3_Medium": "Medium",
-                     "7_Transfer": "Medium" }
-    TASK_STATUS = { "": "Open",
-                   "10%": "Working",
-                   "20%": "Working",
-                   "30%": "Working",
-                   "50%": "Working",
-                   "70%": "Working",
-                   "80%": "Working",
-                   "100%": "Completed" }
+    TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
+    TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
     
     # TEAM 2: 209 -> 3000
     tasks = await get_tasks_from_excel(num_start=209, num_end=300)
