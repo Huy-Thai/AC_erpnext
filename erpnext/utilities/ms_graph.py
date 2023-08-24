@@ -1,4 +1,7 @@
 import asyncio
+
+from datetime import datetime
+from frappe.desk.form import assign_to
 from aiohttp import ClientSession
 from functools import cache
 
@@ -143,7 +146,6 @@ def excel_style(row, col):
 
 
 def convert_date(raw):
-    from datetime import datetime
     try:
         if raw is None or raw == "": return ""
 
@@ -154,12 +156,11 @@ def convert_date(raw):
         return ""
 
 
-def frappe_assign(email, doctype, docname):
-    from frappe.desk.form import assign_to
+def frappe_assign(email, doctype, name):
     assign_to.add({
         "assign_to": email,
         "doctype": doctype,
-        "name": docname,
+        "name": name,
         "description": None,
         "priority": None,
         "notify": 0
