@@ -429,8 +429,9 @@ async def handler_insert_task():
 
             if map_rows[6] != "":
                 user_id = frappe.db.get_value("Employee", {"employee_name": map_rows[6]}, ["user_id"])
-                if user_id:
-                    frappe_assign(email=user_id, doctype=task_doc.doctype, docname=task_doc.subject)
+                print(user_id)
+                # if user_id:
+                #     frappe_assign(email=user_id, doctype=task_doc.doctype, docname=task_doc.subject)
 
 def process_handler_insert_task():
 	asyncio.run(handler_insert_task())
