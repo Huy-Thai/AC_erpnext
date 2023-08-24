@@ -150,8 +150,7 @@ def convert_date(raw):
         date_str = raw[:-2] + f"20{raw[-2:]}"
         date_object = datetime.strptime(date_str, '%m/%d/%Y')
         return date_object
-    except Exception as err:
-        print(err)
+    except ValueError:
         return ""
 
 
