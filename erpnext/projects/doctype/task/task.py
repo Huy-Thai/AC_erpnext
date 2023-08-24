@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 
+import asyncio
 import json
 
 import frappe
@@ -387,7 +388,7 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 
 
-async def process_handler_insert_task():
+async def handler_insert_task():
     TASK_REQUIRED_COLUMN = ["B", "C", "E", "F", "L", "M", "N", "O", "P"]
     TASK_PRIORITY = { "": "",
                      "1_Urgen": "Urgent",
@@ -441,3 +442,6 @@ async def process_handler_insert_task():
                 user_id = frappe.db.get_value("Employee", {"employee_name": map_rows[6]}, ["user_id"])
                 if user_id:
                     frappe_assign(email=user_id, doctype=task_doc.doctype, docname=task_doc.subject)
+
+def process_handler_insert_task():
+	asyncio.run(handler_insert_task())
