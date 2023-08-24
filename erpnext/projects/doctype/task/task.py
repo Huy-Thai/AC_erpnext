@@ -421,17 +421,16 @@ async def handler_insert_task():
             task_doc.exp_start_date = exp_start_date
             task_doc.exp_end_date = exp_end_date
             task_doc.progress = progress
-
-            if status == "Completed":
-                task_doc.completed_on = exp_end_date
-            
+            if status == "Completed": task_doc.completed_on = exp_end_date
             task_doc.insert()
 
             if map_rows[6] != "":
                 user_id = frappe.db.get_value("Employee", {"employee_name": map_rows[6]}, ["user_id"])
-                print(user_id)
-                # if user_id:
-                #     frappe_assign(email=user_id, doctype=task_doc.doctype, docname=task_doc.subject)
+                if user_id is not None:
+                    frappe_assign(email=user_id, doctype=task_doc.doctype, docname=task_doc.subject)
+	
+    print("Success Insert")
+    return True
 
 def process_handler_insert_task():
 	asyncio.run(handler_insert_task())
