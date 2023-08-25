@@ -1,7 +1,7 @@
 import asyncio
 
 from datetime import datetime
-from frappe.desk.form import assign_to
+from frappe.desk.form.assign_to import add as add_assignment
 from aiohttp import ClientSession
 from functools import cache
 
@@ -156,14 +156,14 @@ def convert_date(raw):
         return ""
 
 
-def frappe_assign(email, doctype, name):
-    assign_to.add({
-        "assign_to": email,
+def frappe_assign(assigns, doctype, name, description=None, priority=None, notify=0):
+    add_assignment.add({
+        "assign_to": assigns,
         "doctype": doctype,
         "name": name,
-        "description": None,
-        "priority": None,
-        "notify": 0
+        "description": description,
+        "priority": priority,
+        "notify": notify
     })
 
 
