@@ -157,7 +157,7 @@ def convert_date(raw):
 
 
 def frappe_assign(assigns, doctype, name, description=None, priority=None, notify=0):
-    add_assignment.add({
+    add_assignment({
         "assign_to": assigns,
         "doctype": doctype,
         "name": name,
