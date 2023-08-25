@@ -427,8 +427,8 @@ async def handler_insert_task():
             if map_rows[6] != "":
                 user_id = frappe.db.get_value("Employee", {"employee_name": map_rows[6]}, ["user_id"])
                 frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
-	
-    print("Success Insert")
+
+    frappe.db.commit()
     return True
 
 def process_handler_insert_task():
