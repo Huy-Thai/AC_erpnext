@@ -9,6 +9,11 @@ _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
+TASK_REQUIRED_COLUMN = ["B", "C", "E", "F", "L", "M", "N", "O", "P"]
+TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
+TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
+
+
 @cache
 class MSGraph:
     access_token = None
@@ -167,7 +172,7 @@ def frappe_assign(assigns, doctype, name, description=None, priority=None, notif
     })
 
 
-async def get_tasks_from_excel(num_start, num_end):
+async def get_rows_from_excel_by_range(num_start, num_end, type_range=""):
     promises = []
     async with ClientSession() as session:
         msGraph = MSGraph(
@@ -180,7 +185,7 @@ async def get_tasks_from_excel(num_start, num_end):
         )
 
         for row_num in range(num_start, num_end):
-            range_excel_rows = f"B{row_num}:R{row_num}"
+            range_excel_rows = f"B{row_num}:R{row_num}" if type_range == "TASK" else f"B{row_num}:ZZ{row_num}"
             promise = asyncio.ensure_future(msGraph.process_get_rows_excel_file_from_sharepoint(row_num=row_num, range_rows=range_excel_rows))
             promises.append(promise)
 

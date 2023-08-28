@@ -13,7 +13,7 @@ from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getda
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
-from erpnext.utilities.ms_graph import get_tasks_from_excel, convert_date, frappe_assign
+from erpnext.utilities.ms_graph import get_rows_from_excel_by_range, convert_date, frappe_assign, TASK_REQUIRED_COLUMN, TASK_PRIORITY, TASK_STATUS
 
 class CircularReferenceError(frappe.ValidationError):
 	pass
@@ -388,13 +388,9 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 
 
-async def handler_insert_task():
-    TASK_REQUIRED_COLUMN = ["B", "C", "E", "F", "L", "M", "N", "O", "P"]
-    TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
-    TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
-    
-    # TEAM 2: 209 -> 3000
-    tasks = await get_tasks_from_excel(num_start=209, num_end=300)
+async def handler_insert_tasks():
+    # TEAM 2: 85 -> 2700
+    tasks = await get_rows_from_excel_by_range(num_start=85, num_end=2700)
     for task in tasks:
         if task is None: continue
 
@@ -405,16 +401,20 @@ async def handler_insert_task():
             map_rows = list(map(rows.get, TASK_REQUIRED_COLUMN))
             if "Pa" in map_rows or map_rows[-1] == "": continue
             
+            project_code = map_rows[1]
             status = TASK_STATUS[map_rows[5]]
             priority = TASK_PRIORITY[map_rows[4]]
             progress = map_rows[5].replace("%", "")
             exp_start_date = convert_date(map_rows[2])
             exp_end_date = convert_date(map_rows[3])
+	    
+            is_project_exist = frappe.db.exists("Project", project_code)
+            if not is_project_exist: continue
 
             task_doc = frappe.new_doc("Task")
             task_doc.custom_no = row_num
             task_doc.subject = map_rows[-1]
-            task_doc.project = map_rows[1]
+            task_doc.project = project_code
             task_doc.status = status
             task_doc.priority = priority
             task_doc.parent_task = None
@@ -426,10 +426,10 @@ async def handler_insert_task():
 
             if map_rows[6] != "":
                 user_id = frappe.db.get_value("Employee", {"employee_name": map_rows[6]}, ["user_id"])
-                frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
+                if user_id is not None: frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
 
     frappe.db.commit()
     return True
 
-def process_handler_insert_task():
-	asyncio.run(handler_insert_task())
+def process_handler_insert_tasks():
+	asyncio.run(handler_insert_tasks())
