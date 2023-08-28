@@ -47,7 +47,7 @@ class MSGraph:
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.site_name)
         return result
 
-;
+
     async def get_folder(self, site_id):
         FOLDERS_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root/children"
         resp = await http_client(url=FOLDERS_URL, session=self.session, access_token=self.access_token)
