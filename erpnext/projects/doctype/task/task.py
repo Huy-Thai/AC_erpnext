@@ -402,8 +402,8 @@ async def handler_insert_tasks():
             if "Pa" in map_rows or map_rows[-1] == "": continue
             
             project_code = map_rows[1]
-            status = TASK_STATUS[map_rows[5]]
-            priority = TASK_PRIORITY[map_rows[4]]
+            status = TASK_STATUS[map_rows[5]] if map_rows[5] in TASK_STATUS else "Open"
+            priority = TASK_PRIORITY[map_rows[4]] if map_rows[4] in TASK_PRIORITY else "Medium"
             progress = map_rows[5].replace("%", "")
             exp_start_date = convert_date(map_rows[2])
             exp_end_date = convert_date(map_rows[3])

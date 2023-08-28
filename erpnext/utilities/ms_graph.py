@@ -11,7 +11,8 @@ _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
 TASK_REQUIRED_COLUMN = ["B", "C", "E", "F", "L", "M", "N", "O", "P"]
 TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
-TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
+TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working",
+               "70%": "Working", "80%": "Working", "5_Pending": "Pending Review", "6_Cancel": "Cancelled", "100%": "Completed" }
 
 
 @cache
@@ -46,7 +47,7 @@ class MSGraph:
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.site_name)
         return result
 
-
+;
     async def get_folder(self, site_id):
         FOLDERS_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root/children"
         resp = await http_client(url=FOLDERS_URL, session=self.session, access_token=self.access_token)
