@@ -91,8 +91,7 @@ class MSGraph:
 
     async def process_get_rows_excel_file_from_sharepoint(self, row_num, range_rows):
         try:
-            if self.access_token is None:
-                await self.get_access_token()
+            await self.get_access_token()
 
             sheet_detail = await self.get_worksheet_detail(
                 # TODO:

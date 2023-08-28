@@ -419,7 +419,7 @@ async def handler_insert_tasks():
             task_doc.priority = priority
             task_doc.parent_task = None
             task_doc.exp_start_date = exp_start_date
-            task_doc.exp_end_date = exp_end_date
+            # task_doc.exp_end_date = exp_end_date
             task_doc.progress = progress
             if status == "Completed": task_doc.completed_on = exp_end_date
             task_doc.insert()
