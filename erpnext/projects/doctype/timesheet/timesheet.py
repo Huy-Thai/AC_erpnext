@@ -522,7 +522,7 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
-    data_raws = await handle_get_data_raws(num_start=2041, num_end=2050)
+    data_raws = await handle_get_data_raws(num_start=85, num_end=2700)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
 
@@ -556,8 +556,8 @@ async def handler_insert_timesheets():
             exp_start_date = convert_str_to_date_object(cell["E"])
             # exp_end_date = convert_str_to_date_object(row["F"])
 
-            task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code})
-            if task_doc is None:
+            task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code}, ["name"], as_dict=1)
+            if task_doc.name is None:
                 task_doc = process_insert_tasks(
                     custom_no=row_num,
                     subject=task,
@@ -572,36 +572,37 @@ async def handler_insert_timesheets():
                     employee_name=employee_name,
                 )
 
-            new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
-            new_hash_key = hash_str_8_dig(new_key)
+            print(task_doc)
+            # new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
+            # new_hash_key = hash_str_8_dig(new_key)
 
-            key_split = str_split(input_data=cell["A"], char_split="-")
-            prev_hash_key = key_split[0] if key_split != "" else key_split
-            time_sheet_id = key_split[1] if key_split != "" else key_split
+            # key_split = str_split(input_data=cell["A"], char_split="-")
+            # prev_hash_key = key_split[0] if key_split != "" else key_split
+            # time_sheet_id = key_split[1] if key_split != "" else key_split
 
-            if prev_hash_key == new_hash_key: continue
+            # if prev_hash_key == new_hash_key: continue
 
-            user_id, employee_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"])
-            time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
-            time_sheet_doc.naming_series = "TS-.YYYY.-"
-            time_sheet_doc.parent_project = project_code
-            time_sheet_doc.company = "ACONS"
-            time_sheet_doc.employee = user_id
-            time_sheet_doc.employee_name = employee_name
-            time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
+            # employee = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"], as_dict=1)
+            # time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
+            # time_sheet_doc.naming_series = "TS-.YYYY.-"
+            # time_sheet_doc.parent_project = project_code
+            # time_sheet_doc.company = "ACONS"
+            # time_sheet_doc.employee = employee.user_id
+            # time_sheet_doc.employee_name = employee.employee_name
+            # time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
-            for date, hrs in dates.items():
-                time_sheet_doc.append(
-                    "time_logs",
-                    {
-                        "activity_type": activity_code,
-                        "from_time": date,
-                        "hours": hrs,
-                        "project": project_code,
-                        "task": task_doc.name,
-                        "completed": task_status == "Completed",
-                    },
-                )
+            # for date, hrs in dates.items():
+            #     time_sheet_doc.append(
+            #         "time_logs",
+            #         {
+            #             "activity_type": activity_code,
+            #             "from_time": date,
+            #             "hours": hrs,
+            #             "project": project_code,
+            #             "task": task_doc.name,
+            #             "completed": task_status == "Completed",
+            #         },
+            #     )
 
     frappe.db.commit()
     return True
