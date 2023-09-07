@@ -557,7 +557,7 @@ async def handler_insert_timesheets():
             # exp_end_date = convert_str_to_date_object(row["F"])
 
             task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code}, ["name"], as_dict=1)
-            if task_doc.name is None:
+            if task_doc is None:
                 task_doc = process_insert_tasks(
                     custom_no=row_num,
                     subject=task,
