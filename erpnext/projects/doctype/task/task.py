@@ -408,9 +408,10 @@ def process_insert_tasks(
     task_doc.priority = priority
     task_doc.parent_task = parent_task
     task_doc.exp_start_date = exp_start_date
-    task_doc.exp_end_date = exp_end_date
     task_doc.progress = progress
-    task_doc.completed_on = completed_on
+    if exp_end_date != None: task_doc.exp_end_date = exp_end_date
+    if parent_task != None: task_doc.parent_task = parent_task
+    if completed_on != None: task_doc.completed_on = completed_on
     task_doc.insert()
 
     if employee_name != "":

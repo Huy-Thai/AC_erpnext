@@ -522,7 +522,7 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
-    data_raws = await handle_get_data_raws(num_start=85, num_end=2700)
+    data_raws = await handle_get_data_raws(num_start=210, num_end=894)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
 
@@ -554,7 +554,7 @@ async def handler_insert_timesheets():
             task_status = TASK_STATUS[cell["M"]] if cell["M"] in TASK_STATUS else "Open"
             task_priority = TASK_PRIORITY[cell["L"]] if cell["L"] in TASK_PRIORITY else "Medium"
             exp_start_date = convert_str_to_date_object(cell["E"])
-            # exp_end_date = convert_str_to_date_object(row["F"])
+            exp_end_date = convert_str_to_date_object(cell["F"])
 
             task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code}, ["name"], as_dict=1)
             if task_doc is None:
@@ -567,12 +567,12 @@ async def handler_insert_timesheets():
                     progress=progress,
                     exp_start_date=exp_start_date,
                     parent_task=None,
-                    exp_end_date=None,
-                    completed_on=None,
+                    exp_end_date=exp_end_date,
+                    completed_on=exp_end_date if task_status == "Completed" else None,
                     employee_name=employee_name,
                 )
 
-            print(task_doc)
+            print(task_doc.name)
             # new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
             # new_hash_key = hash_str_8_dig(new_key)
 
