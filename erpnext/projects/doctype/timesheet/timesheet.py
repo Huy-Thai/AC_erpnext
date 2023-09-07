@@ -522,7 +522,7 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
-    data_raws = await handle_get_data_raws(num_start=2041, num_end=2323)
+    data_raws = await handle_get_data_raws(num_start=2041, num_end=2050)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
 
@@ -576,8 +576,8 @@ async def handler_insert_timesheets():
             new_hash_key = hash_str_8_dig(new_key)
 
             key_split = str_split(input_data=cell["A"], char_split="-")
-            prev_hash_key = key_split[0]
-            time_sheet_id = key_split[1]
+            prev_hash_key = key_split[0] if key_split != "" else key_split
+            time_sheet_id = key_split[1] if key_split != "" else key_split
 
             if prev_hash_key == new_hash_key: continue
 
@@ -607,5 +607,5 @@ async def handler_insert_timesheets():
     return True
 
 
-def process_handler_insert_tasks():
+def process_handle_insert_timesheets_from_excel():
 	asyncio.run(handler_insert_timesheets())
