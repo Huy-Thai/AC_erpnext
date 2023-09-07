@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 
 from datetime import datetime
 from frappe.desk.form.assign_to import add as add_assignment
@@ -9,10 +10,10 @@ _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
-TASK_REQUIRED_COLUMN = ["B", "C", "E", "F", "L", "M", "N", "O", "P"]
-TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
-TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working",
-               "70%": "Working", "80%": "Working", "5_Pending": "Pending Review", "6_Cancel": "Cancelled", "100%": "Completed" }
+TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
+TASK_PRIORITY = { "": "", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
+TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
+TIME_SHEET_STATUS = { "": "Draft", "Working": "Draft", "Completed": "Completed", "Cancelled": "Cancelled" }
 
 
 @cache
@@ -89,31 +90,30 @@ class MSGraph:
         return resp
 
 
-    async def process_get_rows_excel_file_from_sharepoint(self, row_num, range_rows):
+    async def get_data_on_excel_file_by_range(self, range_rows, row_num=None):
         try:
             await self.get_access_token()
 
-            sheet_detail = await self.get_worksheet_detail(
-                # TODO:
+            response = await self.get_worksheet_detail(
                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
                 file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
                 worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
                 range_rows=range_rows,
             )
 
-            if ("text" not in sheet_detail) or (sheet_detail["text"][0] == None):
-                return None
+            if ("text" not in response) or (response["text"][0] == None): return None
+            if row_num == None: return response["text"][0]
 
-            rows = {}
+            new_rows = {}
             result = {}
-            for idx, value in enumerate(sheet_detail["text"][0]):
-                column = excel_style(row_num, idx + 2)
-                rows[column] = value
+            for idx, value in enumerate(response["text"][0]):
+                column = excel_style(None, idx + 1)
+                new_rows[column] = value
 
-            result[row_num] = rows
+            result[row_num] = new_rows
             return result
         except Exception as err:
-            print(f"Process get row excel file failed with: {err}")
+            print(f"Get data on excel file by range failed with: {err}")
             return None
         
 
@@ -150,15 +150,43 @@ def excel_style(row, col):
     return ''.join(result)
 
 
-def convert_date(raw):
+def convert_str_to_date_object(raw, is_abb_month=False):
     try:
+        # is_abb_month True mean is abbreviated month Jan, Feb, Mar,..., Dec --> 2-July-23
+        # else Date of the month 1,2,3,...,31 --> 8/5/22
         if raw is None or raw == "": return ""
 
+        regex = "%d-%b-%Y" if is_abb_month else "%m/%d/%Y"
         date_str = raw[:-2] + f"20{raw[-2:]}"
-        date_object = datetime.strptime(date_str, '%m/%d/%Y')
+        date_object = datetime.strptime(date_str, regex)
         return date_object
-    except ValueError:
-        return ""
+    except Exception as err:
+        print(f"Convert string to date object failed with: {err}")
+        return None
+    
+
+def format_dates_with_excel_style(dates):
+    if dates is None: return None
+
+    result = {}
+    for idx, value in enumerate(dates):
+        column = excel_style(None, idx + 19)
+        result[column] = convert_str_to_date_object(value, is_abb_month=True)
+
+    return result
+
+
+def hash_str_8_dig(raw_str):
+    encode = hashlib.sha1(raw_str.encode("utf-8")).hexdigest()
+    hash_obj = int(encode, 16) % (10 ** 8)
+    return hash_obj
+
+
+def str_split(input_data, char_split):
+    if input_data == "" or input_data == None: return ""
+
+    result = input_data.split(char_split)
+    return result
 
 
 def frappe_assign(assigns, doctype, name, description=None, priority=None, notify=0):
@@ -172,11 +200,11 @@ def frappe_assign(assigns, doctype, name, description=None, priority=None, notif
     })
 
 
-async def get_rows_from_excel_by_range(num_start, num_end, type_range=""):
+async def handle_get_data_raws(num_start, num_end):
     promises = []
     async with ClientSession() as session:
         msGraph = MSGraph(
-            # TODO:
+            # TODO: implement payload here
             session=session,
             site_name="TEAM 2",
             folder_name="General",
@@ -184,10 +212,14 @@ async def get_rows_from_excel_by_range(num_start, num_end, type_range=""):
             worksheet_name="From W1_2023",
         )
 
-        for row_num in range(num_start, num_end):
-            range_excel_rows = f"B{row_num}:R{row_num}" if type_range == "TASK" else f"B{row_num}:ZZ{row_num}"
-            promise = asyncio.ensure_future(msGraph.process_get_rows_excel_file_from_sharepoint(row_num=row_num, range_rows=range_excel_rows))
-            promises.append(promise)
+        date_row_num = 24
+        dates = await msGraph.get_data_on_excel_file_by_range(range_rows=f"S{date_row_num}:OO{date_row_num}")
+        date_object = format_dates_with_excel_style(dates=dates)
 
-        responses = await asyncio.gather(*promises)
-        return responses
+        for row_num in range(num_start, num_end):
+            range_excel_rows = f"A{row_num}:OO{row_num}"
+            promise = asyncio.ensure_future(msGraph.get_data_on_excel_file_by_range(row_num=row_num, range_rows=range_excel_rows))
+            promises.append(promise)
+        row_object = await asyncio.gather(*promises)
+
+        return row_object, date_object

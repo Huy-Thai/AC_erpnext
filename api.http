@@ -42,12 +42,16 @@ content-type: application/json
 
 {
     "usr": "Administrator",
-    "pwd": ""
+    "pwd": "123456"
 }
 
 ###
 
-GET https://acerp-dev.pandion.vn/api/resource/Task HTTP/1.1
+GET https://acerp-dev.pandion.vn/api/resource/Timesheet?fields=["name", "naming_series", "parent_project", "employee", "employee_name", "status", "start_date"] HTTP/1.1
+
+###
+
+GET https://acerp-dev.pandion.vn/api/resource/Timesheet/TS-07-09-23-00005_HR-EMP-00001 HTTP/1.1
 
 ###
 

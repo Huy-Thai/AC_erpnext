@@ -3,6 +3,7 @@
 
 
 import json
+import asyncio
 
 import frappe
 from frappe import _
@@ -11,6 +12,8 @@ from frappe.utils import add_to_date, flt, get_datetime, getdate, time_diff_in_h
 
 from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
+from erpnext.projects.doctype.task.task import process_insert_tasks
+from erpnext.utilities.ms_graph import TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, handle_get_data_raws, convert_str_to_date_object, hash_str_8_dig, str_split
 
 
 class OverlapError(frappe.ValidationError):
@@ -515,3 +518,94 @@ def get_list_context(context=None):
 		"get_list": get_timesheets_list,
 		"row_template": "templates/includes/timesheet/timesheet_row.html",
 	}
+
+
+async def handler_insert_timesheets():
+    # TEAM 2: 85 -> 2700
+    data_raws = await handle_get_data_raws(num_start=2041, num_end=2323)
+    raw_time_sheets = data_raws[0]
+    raw_dates = data_raws[1]
+
+    for sheet in raw_time_sheets:
+        if sheet is None: continue
+
+        for row_num in sheet:
+            cell = sheet[row_num]
+            if cell is None or cell["B"] == "Pa" or cell["N"] == "" or cell["P"] == "": continue
+
+            dates = {}
+            date_string = ""
+            for column, value in cell.items():
+                if column in raw_dates and value != "" and value != None:
+                    date = raw_dates[column]
+                    dates[date] = value
+                    date_string = date_string + column + "-" + value + ";"
+
+            if len(dates) == 0: continue
+
+            project_code = cell["C"]
+            is_project_exist = frappe.db.exists("Project", project_code)
+            if not is_project_exist: continue
+
+            task = cell["P"]
+            progress = cell["M"].replace("%", "")
+            activity_code = cell["O"]
+            employee_name = cell["N"]
+            task_status = TASK_STATUS[cell["M"]] if cell["M"] in TASK_STATUS else "Open"
+            task_priority = TASK_PRIORITY[cell["L"]] if cell["L"] in TASK_PRIORITY else "Medium"
+            exp_start_date = convert_str_to_date_object(cell["E"])
+            # exp_end_date = convert_str_to_date_object(row["F"])
+
+            task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code})
+            if task_doc is None:
+                task_doc = process_insert_tasks(
+                    custom_no=row_num,
+                    subject=task,
+                    project=project_code,
+                    status=task_status,
+                    priority=task_priority,
+                    progress=progress,
+                    exp_start_date=exp_start_date,
+                    parent_task=None,
+                    exp_end_date=None,
+                    completed_on=None,
+                    employee_name=employee_name,
+                )
+
+            new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
+            new_hash_key = hash_str_8_dig(new_key)
+
+            key_split = str_split(input_data=cell["A"], char_split="-")
+            prev_hash_key = key_split[0]
+            time_sheet_id = key_split[1]
+
+            if prev_hash_key == new_hash_key: continue
+
+            user_id, employee_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"])
+            time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
+            time_sheet_doc.naming_series = "TS-.YYYY.-"
+            time_sheet_doc.parent_project = project_code
+            time_sheet_doc.company = "ACONS"
+            time_sheet_doc.employee = user_id
+            time_sheet_doc.employee_name = employee_name
+            time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
+
+            for date, hrs in dates.items():
+                time_sheet_doc.append(
+                    "time_logs",
+                    {
+                        "activity_type": activity_code,
+                        "from_time": date,
+                        "hours": hrs,
+                        "project": project_code,
+                        "task": task_doc.name,
+                        "completed": task_status == "Completed",
+                    },
+                )
+
+    frappe.db.commit()
+    return True
+
+
+def process_handler_insert_tasks():
+	asyncio.run(handler_insert_timesheets())

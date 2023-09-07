@@ -2,7 +2,6 @@
 # License: GNU General Public License v3. See license.txt
 
 
-import asyncio
 import json
 
 import frappe
@@ -13,7 +12,7 @@ from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getda
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
-from erpnext.utilities.ms_graph import get_rows_from_excel_by_range, convert_date, frappe_assign, TASK_REQUIRED_COLUMN, TASK_PRIORITY, TASK_STATUS
+from erpnext.utilities.ms_graph import frappe_assign
 
 class CircularReferenceError(frappe.ValidationError):
 	pass
@@ -388,48 +387,34 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 
 
-async def handler_insert_tasks():
-    # TEAM 2: 85 -> 2700
-    tasks = await get_rows_from_excel_by_range(num_start=85, num_end=2700)
-    for task in tasks:
-        if task is None: continue
+def process_insert_tasks(
+        custom_no,
+        subject,
+        project,
+        status,
+        priority,
+        progress,
+        exp_start_date,
+        employee_name,
+        parent_task=None,
+        exp_end_date=None,
+        completed_on=None):
 
-        for row_num in task:
-            rows = task[row_num]
-            if rows is None: continue
+    task_doc = frappe.new_doc("Task")
+    task_doc.custom_no = custom_no
+    task_doc.subject = subject
+    task_doc.project = project
+    task_doc.status = status
+    task_doc.priority = priority
+    task_doc.parent_task = parent_task
+    task_doc.exp_start_date = exp_start_date
+    task_doc.exp_end_date = exp_end_date
+    task_doc.progress = progress
+    task_doc.completed_on = completed_on
+    task_doc.insert()
 
-            map_rows = list(map(rows.get, TASK_REQUIRED_COLUMN))
-            if "Pa" in map_rows or map_rows[-1] == "": continue
-            
-            project_code = map_rows[1]
-            status = TASK_STATUS[map_rows[5]] if map_rows[5] in TASK_STATUS else "Open"
-            priority = TASK_PRIORITY[map_rows[4]] if map_rows[4] in TASK_PRIORITY else "Medium"
-            progress = map_rows[5].replace("%", "")
-            exp_start_date = convert_date(map_rows[2])
-            exp_end_date = convert_date(map_rows[3])
-	    
-            is_project_exist = frappe.db.exists("Project", project_code)
-            if not is_project_exist: continue
-
-            task_doc = frappe.new_doc("Task")
-            task_doc.custom_no = row_num
-            task_doc.subject = map_rows[-1]
-            task_doc.project = project_code
-            task_doc.status = status
-            task_doc.priority = priority
-            task_doc.parent_task = None
-            task_doc.exp_start_date = exp_start_date
-            # task_doc.exp_end_date = exp_end_date
-            task_doc.progress = progress
-            if status == "Completed": task_doc.completed_on = exp_end_date
-            task_doc.insert()
-
-            if map_rows[6] != "":
-                user_id = frappe.db.get_value("Employee", {"employee_name": map_rows[6]}, ["user_id"])
-                if user_id is not None: frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
-
-    frappe.db.commit()
-    return True
-
-def process_handler_insert_tasks():
-	asyncio.run(handler_insert_tasks())
+    if employee_name != "":
+        user_id = frappe.db.get_value("Employee", {"employee_name":employee_name}, ["user_id"])
+        if user_id is not None: frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
+    
+    return task_doc
