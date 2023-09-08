@@ -532,8 +532,8 @@ async def handler_insert_timesheets():
 
         for row_num in sheet:
             cell = sheet[row_num]
-            print(cell)
             if cell is None or cell["B"] == "Pa" or cell["N"] == "" or cell["P"] == "": continue
+            print(row_num)
 
             dates = {}
             date_string = ""
@@ -544,10 +544,12 @@ async def handler_insert_timesheets():
                     date_string = date_string + column + "-" + value + ";"
 
             if len(dates) == 0: continue
+            print(row_num)
 
             project_code = cell["C"]
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
+            print(row_num)
 
             task = cell["P"]
             progress = cell["M"].replace("%", "")
@@ -579,6 +581,7 @@ async def handler_insert_timesheets():
 
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
             if prev_hash_key == new_hash_key: continue
+            print(row_num)
 
             employee = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"], as_dict=1)
             time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
