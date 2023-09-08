@@ -191,6 +191,18 @@ def hash_str_8_dig(raw_str):
     return hash_obj
 
 
+def mapping_cell_with_raw_dates(cell, raw_dates):
+    dates = {}
+    date_string = ""
+    for column, value in cell.items():
+        if column in raw_dates and value != "" and value != None:
+            date = raw_dates[column]
+            dates[date] = value
+            date_string = date_string + column + "-" + value + ";"
+
+    return dates, date_string
+
+
 def split_str_get_key(input_data, char_split):
     if input_data == "" or input_data == None: return "", ""
 
@@ -258,5 +270,4 @@ async def handle_update_A_colum_to_excel(data):
             ))
             promises.append(promise)
 
-        results = await asyncio.gather(*promises)
-        print(results)
+        await asyncio.gather(*promises)

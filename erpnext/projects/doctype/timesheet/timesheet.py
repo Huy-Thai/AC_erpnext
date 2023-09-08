@@ -13,7 +13,10 @@ from frappe.utils import add_to_date, flt, get_datetime, getdate, time_diff_in_h
 from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_insert_tasks
-from erpnext.utilities.ms_graph import TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, handle_get_data_raws, handle_update_A_colum_to_excel, convert_str_to_date_object, hash_str_8_dig, split_str_get_key
+from erpnext.utilities.ms_graph import (
+    TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS,
+	handle_get_data_raws, handle_update_A_colum_to_excel,
+	convert_str_to_date_object, hash_str_8_dig, split_str_get_key, mapping_cell_with_raw_dates )
 
 
 class OverlapError(frappe.ValidationError):
@@ -532,24 +535,12 @@ async def handler_insert_timesheets():
 
         for row_num in sheet:
             cell = sheet[row_num]
-            if cell is None or cell["B"] == "Pa" or cell["N"] == "" or cell["P"] == "": continue
-            print("1", row_num)
-
-            dates = {}
-            date_string = ""
-            for column, value in cell.items():
-                if column in raw_dates and value != "" and value != None:
-                    date = raw_dates[column]
-                    dates[date] = value
-                    date_string = date_string + column + "-" + value + ";"
-
-            if len(dates) == 0: continue
-            print("2", row_num)
+            if cell is None or cell["B"] == "Pa" or cell["P"] == "": continue
+            dates, date_string = mapping_cell_with_raw_dates(cell, raw_dates)
 
             project_code = cell["C"]
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
-            print("3", row_num)
 
             task = cell["P"]
             progress = cell["M"].replace("%", "")
@@ -576,13 +567,13 @@ async def handler_insert_timesheets():
                     employee_name=employee_name,
                 )
 
+            if employee_name == "": continue
             new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
 
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
-            print("4 key", prev_hash_key == new_hash_key)
+            print(row_num, prev_hash_key == new_hash_key)
             if prev_hash_key == new_hash_key: continue
-            print("5", row_num)
 
             employee = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"], as_dict=1)
             time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
@@ -593,18 +584,19 @@ async def handler_insert_timesheets():
             time_sheet_doc.employee_name = employee.employee_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
-            for date, hrs in dates.items():
-                time_sheet_doc.append(
-                    "time_logs",
-                    {
-                        "activity_type": activity_code,
-                        "from_time": date,
-                        "hours": float(hrs),
-                        "project": project_code,
-                        "task": task_doc.name,
-                        "completed": task_status == "Completed",
-                    },
-                )
+            if len(dates) > 0:
+                for date, hrs in dates.items():
+                    time_sheet_doc.append(
+                        "time_logs",
+                        {
+                            "activity_type": activity_code,
+                            "from_time": date,
+                            "hours": float(hrs),
+                            "project": project_code,
+                            "task": task_doc.name,
+                            "completed": task_status == "Completed",
+                        },
+                    )
 
             time_sheet_doc.insert()
             if task_status == "Completed": time_sheet_doc.submit()
