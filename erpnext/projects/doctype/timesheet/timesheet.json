@@ -160,8 +160,7 @@
    "fieldname": "time_logs",
    "fieldtype": "Table",
    "label": "Time Sheets",
-   "options": "Timesheet Detail",
-   "reqd": 1
+   "options": "Timesheet Detail"
   },
   {
    "fieldname": "working_hours",
