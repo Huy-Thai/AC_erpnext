@@ -532,6 +532,7 @@ async def handler_insert_timesheets():
 
         for row_num in sheet:
             cell = sheet[row_num]
+            print(cell)
             if cell is None or cell["B"] == "Pa" or cell["N"] == "" or cell["P"] == "": continue
 
             dates = {}
@@ -603,7 +604,7 @@ async def handler_insert_timesheets():
 
             time_sheet_doc.insert()
             if task_status == "Completed": time_sheet_doc.submit()
-        excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
+            excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
     frappe.db.commit()
     await handle_update_A_colum_to_excel(data=excel_data_update)
