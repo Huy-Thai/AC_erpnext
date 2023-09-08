@@ -380,8 +380,7 @@
    "depends_on": "eval: doc.status == \"Completed\"",
    "fieldname": "completed_on",
    "fieldtype": "Date",
-   "label": "Completed On",
-   "mandatory_depends_on": "eval: doc.status == \"Completed\""
+   "label": "Completed On"
   }
  ],
  "icon": "fa fa-check",

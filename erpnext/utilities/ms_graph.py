@@ -11,7 +11,7 @@ _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
 TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
-TASK_PRIORITY = { "": "", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
+TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
 TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
 TIME_SHEET_STATUS = { "": "Draft", "Working": "Draft", "Completed": "Completed", "Cancelled": "Cancelled" }
 
@@ -20,7 +20,7 @@ TIME_SHEET_STATUS = { "": "Draft", "Working": "Draft", "Completed": "Completed",
 class MSGraph:
     access_token = None
 
-    def __init__(self, session, site_name, folder_name, file_name, worksheet_name):
+    def __init__(self, session, site_name=None, folder_name=None, file_name=None, worksheet_name=None):
         self.session = session
         self.site_name = site_name
         self.folder_name = folder_name
@@ -28,6 +28,7 @@ class MSGraph:
         self.worksheet_name = worksheet_name
 
 
+    # TODO: Check expired access token with 1 hour
     async def get_access_token(self):
         AUTH_URL = f"https://login.microsoftonline.com/{_TENANT_ID}/oauth2/v2.0/token"
         PAYLOAD = {
@@ -43,6 +44,7 @@ class MSGraph:
 
 
     async def get_site(self):
+        assert self.site_name != None, "Param site_name is required"
         SITES_URL = "https://graph.microsoft.com/v1.0/sites"
         resp = await http_client(url=SITES_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.site_name)
@@ -50,6 +52,7 @@ class MSGraph:
 
 
     async def get_folder(self, site_id):
+        assert self.folder_name != None and site_id != None, "Param folder_name and site_id are required"
         FOLDERS_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root/children"
         resp = await http_client(url=FOLDERS_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.folder_name)
@@ -57,6 +60,7 @@ class MSGraph:
 
 
     async def get_items_in_folder(self, site_id, folder_id):
+        assert self.file_name != None and site_id != None and folder_id != None, "Param file_name and site_id and folder_id are required"
         ITEMS_FOLDER_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{folder_id}/children"
         resp = await http_client(url=ITEMS_FOLDER_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.file_name)
@@ -64,6 +68,7 @@ class MSGraph:
 
 
     async def get_worksheet(self, site_id, file_id):
+        assert self.worksheet_name != None and file_id != None and site_id != None, "Param worksheet_name and file_id and site_id are required"
         WORKSHEETS_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets"
         resp = await http_client(url=WORKSHEETS_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.worksheet_name)
@@ -71,6 +76,7 @@ class MSGraph:
 
 
     async def get_worksheet_detail(self, site_id, file_id, worksheet_id, range_rows):
+        assert worksheet_id != None and file_id != None and site_id != None, "Param worksheet_id and file_id and site_id are required"
         WORKSHEET_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}"
         WORKSHEET_DETAIL_URL = WORKSHEET_URL + f"/range(address='{range_rows}')?$select=text"
         result = await http_client(url=WORKSHEET_DETAIL_URL, session=self.session, access_token=self.access_token)
@@ -78,6 +84,7 @@ class MSGraph:
 
 
     async def patch_worksheet(self, site_id, file_id, worksheet_id, range_rows, payload):
+        assert worksheet_id != None and file_id != None and site_id != None, "Param worksheet_id and file_id and site_id are required"
         WORKSHEET_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}"
         WORKSHEET_DETAIL_URL = WORKSHEET_URL + f"/range(address='{range_rows}')"
         resp = await http_client(
@@ -94,6 +101,7 @@ class MSGraph:
         try:
             await self.get_access_token()
 
+            # TODO: build payload for get all file of teams
             response = await self.get_worksheet_detail(
                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
                 file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
@@ -223,3 +231,28 @@ async def handle_get_data_raws(num_start, num_end):
         row_object = await asyncio.gather(*promises)
 
         return row_object, date_object
+
+
+async def handle_update_A_colum_to_excel(data):
+    async with ClientSession() as session:
+        promises = []
+        msGraph = MSGraph(session=session)
+        for row_num, hash_key in data.items():
+            range_excel_rows = f"A{row_num}"
+            payload = {
+                "values" : [[hash_key]],
+                "formulas" : [[None]],
+                "numberFormat" : [[None]]
+            }
+
+            promise = asyncio.ensure_future(msGraph.patch_worksheet(
+                site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
+                file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
+                worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
+                range_rows=range_excel_rows,
+                payload=payload
+            ))
+            promises.append(promise)
+        results = await asyncio.gather(*promises)
+
+        return results
