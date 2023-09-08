@@ -594,7 +594,7 @@ async def handler_insert_timesheets():
                     {
                         "activity_type": activity_code,
                         "from_time": date,
-                        "hours": hrs,
+                        "hours": float(hrs),
                         "project": project_code,
                         "task": task_doc.name,
                         "completed": task_status == "Completed",
