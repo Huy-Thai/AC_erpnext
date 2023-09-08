@@ -13,7 +13,7 @@ from frappe.utils import add_to_date, flt, get_datetime, getdate, time_diff_in_h
 from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_insert_tasks
-from erpnext.utilities.ms_graph import TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, handle_get_data_raws, handle_update_A_colum_to_excel, convert_str_to_date_object, hash_str_8_dig, str_split
+from erpnext.utilities.ms_graph import TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, handle_get_data_raws, handle_update_A_colum_to_excel, convert_str_to_date_object, hash_str_8_dig, split_str_get_key
 
 
 class OverlapError(frappe.ValidationError):
@@ -576,10 +576,7 @@ async def handler_insert_timesheets():
             new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
 
-            curr_key_split = str_split(input_data=cell["A"], char_split="--")
-            prev_hash_key = curr_key_split[0] if curr_key_split != "" else curr_key_split
-            time_sheet_id = curr_key_split[1] if curr_key_split != "" else curr_key_split
-
+            prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
             if prev_hash_key == new_hash_key: continue
 
             employee = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"], as_dict=1)

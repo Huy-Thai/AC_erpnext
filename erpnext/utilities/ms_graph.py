@@ -190,11 +190,14 @@ def hash_str_8_dig(raw_str):
     return hash_obj
 
 
-def str_split(input_data, char_split):
+def split_str_get_key(input_data, char_split):
     if input_data == "" or input_data == None: return ""
 
-    result = input_data.split(char_split)
-    return result
+    results = input_data.split(char_split)
+    index_0 = results[0] if len(results) >= 1 else ""
+    index_1 = results[1] if len(results) >= 2 else ""
+
+    return index_0, index_1
 
 
 def frappe_assign(assigns, doctype, name, description=None, priority=None, notify=0):
