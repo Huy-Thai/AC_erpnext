@@ -576,9 +576,7 @@ async def handler_insert_timesheets():
             if prev_hash_key == new_hash_key: continue
 
             employee = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"], as_dict=1)
-            time_sheet_doc = frappe.new_doc("Timesheet")
-            if prev_hash_key != "":
-                time_sheet_doc = frappe.get_doc("Timesheet", time_sheet_id)
+            time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
 
             time_sheet_doc.naming_series = "TS-.YYYY.-"
             time_sheet_doc.parent_project = project_code
@@ -601,14 +599,8 @@ async def handler_insert_timesheets():
                         },
                     )
 
-            if prev_hash_key == "":
-                time_sheet_doc.insert()
-            else:
-                time_sheet_doc.save()
-
-            if task_status == "Completed":
-                time_sheet_doc.submit()
-
+            time_sheet_doc.insert() if prev_hash_key == "" else time_sheet_doc.save()
+            if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
     frappe.db.commit()
