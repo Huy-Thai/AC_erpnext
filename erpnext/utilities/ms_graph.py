@@ -85,6 +85,7 @@ class MSGraph:
 
     async def patch_worksheet(self, site_id, file_id, worksheet_id, range_rows, payload):
         assert worksheet_id != None and file_id != None and site_id != None, "Param worksheet_id and file_id and site_id are required"
+        await self.get_access_token()
         WORKSHEET_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}"
         WORKSHEET_DETAIL_URL = WORKSHEET_URL + f"/range(address='{range_rows}')"
         resp = await http_client(
