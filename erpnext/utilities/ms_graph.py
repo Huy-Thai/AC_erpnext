@@ -191,7 +191,7 @@ def hash_str_8_dig(raw_str):
 
 
 def split_str_get_key(input_data, char_split):
-    if input_data == "" or input_data == None: return ""
+    if input_data == "" or input_data == None: return "", ""
 
     results = input_data.split(char_split)
     index_0 = results[0] if len(results) >= 1 else ""
