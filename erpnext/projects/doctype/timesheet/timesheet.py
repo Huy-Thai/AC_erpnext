@@ -572,7 +572,7 @@ async def handler_insert_timesheets():
             new_hash_key = hash_str_8_dig(new_key)
 
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
-            print(row_num, prev_hash_key == new_hash_key)
+            print(row_num, prev_hash_key)
             if prev_hash_key == new_hash_key: continue
 
             employee = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id", "employee_name"], as_dict=1)
