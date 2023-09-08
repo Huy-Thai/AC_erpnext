@@ -13,7 +13,7 @@ _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
 TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
 TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
-TIME_SHEET_STATUS = { "": "Draft", "Working": "Draft", "Completed": "Completed", "Cancelled": "Cancelled" }
+TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "Working": "Draft", "Completed": "Completed", "Cancelled": "Cancelled" }
 
 
 @cache
