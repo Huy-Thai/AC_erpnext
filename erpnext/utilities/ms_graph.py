@@ -237,8 +237,8 @@ async def handle_get_data_raws(num_start, num_end):
 
 
 async def handle_update_A_colum_to_excel(data):
+    promises = []
     async with ClientSession() as session:
-        promises = []
         msGraph = MSGraph(session=session)
         for row_num, hash_key in data.items():
             range_excel_rows = f"A{row_num}"
@@ -256,6 +256,6 @@ async def handle_update_A_colum_to_excel(data):
                 payload=payload
             ))
             promises.append(promise)
-        results = await asyncio.gather(*promises)
 
-        return results
+        results = await asyncio.gather(*promises)
+        print(results)
