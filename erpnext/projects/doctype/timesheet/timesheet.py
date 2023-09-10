@@ -525,7 +525,7 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
-    data_raws = await handle_get_data_raws(num_start=210, num_end=250)
+    data_raws = await handle_get_data_raws(num_start=210, num_end=220)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
     excel_data_update = {}
