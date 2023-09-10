@@ -240,7 +240,7 @@ frappe.ui.form.on("Timesheet Detail", {
 	},
 
 	from_time: function(frm, cdt, cdn) {
-		calculate_end_time(frm, cdt, cdn);
+		// calculate_end_time(frm, cdt, cdn);
 	},
 
 	// to_time: function(frm, cdt, cdn) {
