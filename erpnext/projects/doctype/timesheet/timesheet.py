@@ -575,7 +575,7 @@ async def handler_insert_timesheets():
             print(row_num, prev_hash_key)
             if prev_hash_key == new_hash_key: continue
 
-            emp_name = frappe.db.get_value("Employee", {"full_name": employee_name}, ["name"])
+            emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
 
             time_sheet_doc.naming_series = "TS-.YYYY.-"
