@@ -243,14 +243,14 @@ frappe.ui.form.on("Timesheet Detail", {
 		calculate_end_time(frm, cdt, cdn);
 	},
 
-	to_time: function(frm, cdt, cdn) {
-		var child = locals[cdt][cdn];
+	// to_time: function(frm, cdt, cdn) {
+	// 	var child = locals[cdt][cdn];
 
-		if(frm._setting_hours) return;
+	// 	if(frm._setting_hours) return;
 
-		var hours = moment(child.to_time).diff(moment(child.from_time), "seconds") / 3600;
-		frappe.model.set_value(cdt, cdn, "hours", hours);
-	},
+	// 	var hours = moment(child.to_time).diff(moment(child.from_time), "seconds") / 3600;
+	// 	frappe.model.set_value(cdt, cdn, "hours", hours);
+	// },
 
 	time_logs_add: function(frm, cdt, cdn) {
 		if(frm.doc.parent_project) {
