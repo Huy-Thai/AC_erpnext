@@ -587,35 +587,31 @@ async def handler_insert_timesheets():
 
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
+
                 for date, hrs in dates.items():
-                    curr_row_inside_logs = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
-                    other_row_outside_dates = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) not in dates), None)
+                    curr_log = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
+                    log_out_dates = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) not in dates), None)
 
-                    print("curr", curr_row_inside_logs.from_time)
-                    print("other", other_row_outside_dates.from_time)
-                    # if not is_time_log_exist:
-                    #     frappe.db.delete("Timesheet Detail", prev_row.name)
-                    #     continue
+                    if log_out_dates: frappe.db.delete("Timesheet Detail", log_out_dates.name)
+                    if curr_log is None:
+                        time_sheet_doc.append(
+                            "time_logs",
+                            {
+                                "activity_type": activity_code,
+                                "from_time": date,
+                                "hours": float(hrs),
+                                "project": project_code,
+                                "task": task_doc.name,
+                                "completed": task_status == "Completed",
+                            },
+                        )
+                        continue
 
-                    # if prev_row is None:
-                    #     time_sheet_doc.append(
-                    #         "time_logs",
-                    #         {
-                    #             "activity_type": activity_code,
-                    #             "from_time": date,
-                    #             "hours": float(hrs),
-                    #             "project": project_code,
-                    #             "task": task_doc.name,
-                    #             "completed": task_status == "Completed",
-                    #         },
-                    #     )
-                    #     continue
-
-                    # prev_row.activity_type = activity_code
-                    # prev_row.hours = float(hrs)
-                    # prev_row.project = project_code
-                    # prev_row.task = task_doc.name
-                    # prev_row.completed = task_status == "Completed"
+                    curr_log.activity_type = activity_code
+                    curr_log.hours = float(hrs)
+                    curr_log.project = project_code
+                    curr_log.task = task_doc.name
+                    curr_log.completed = task_status == "Completed"
 
             time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()
             if task_status == "Completed": time_sheet_doc.submit()
