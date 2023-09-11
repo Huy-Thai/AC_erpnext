@@ -587,9 +587,13 @@ async def handler_insert_timesheets():
 
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
-                for date, hrs in dates.items():
-                    prev_row = next((row for row in prev_time_logs if row.from_time == date), None)
-                    print(date, prev_row)
+                for row in prev_time_logs:
+                    print(row.from_time)
+                    print(type(row.from_time))
+                # for date, hrs in dates.items():
+                #     print(date, prev_row)
+                #     prev_row = next((row for row in prev_time_logs if row.from_time == date), None)
+                #     print(date, prev_row)
                     # if len(prev_time_logs) == 0 or prev_row == None:
                     #     time_sheet_doc.append(
                     #         "time_logs",
