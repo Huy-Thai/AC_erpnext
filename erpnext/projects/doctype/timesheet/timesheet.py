@@ -551,6 +551,7 @@ async def handler_insert_timesheets():
             exp_start_date = convert_str_to_date_object(cell["E"])
             exp_end_date = convert_str_to_date_object(cell["F"])
 
+            # TODO: update task
             task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code}, ["name"], as_dict=1)
             if task_doc is None:
                 task_doc = process_insert_tasks(
@@ -572,13 +573,11 @@ async def handler_insert_timesheets():
             new_hash_key = hash_str_8_dig(new_key)
 
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
-            print(row_num, prev_hash_key == new_hash_key)
-            print(row_num, prev_hash_key)
-            print(row_num, new_hash_key)
             if prev_hash_key == new_hash_key: continue
+            is_new_time_sheet = prev_hash_key == ""
 
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-            time_sheet_doc = frappe.new_doc("Timesheet") if prev_hash_key == "" else frappe.get_doc("Timesheet", time_sheet_id)
+            time_sheet_doc = frappe.new_doc("Timesheet") if is_new_time_sheet else frappe.get_doc("Timesheet", time_sheet_id)
 
             time_sheet_doc.naming_series = "TS-.YYYY.-"
             time_sheet_doc.parent_project = project_code
@@ -587,25 +586,24 @@ async def handler_insert_timesheets():
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
             if len(dates) > 0:
-                if prev_hash_key == "":
-                    for date, hrs in dates.items():
-                        time_sheet_doc.append(
-                            "time_logs",
-                            {
-                                "activity_type": activity_code,
-                                "from_time": date,
-                                "hours": float(hrs),
-                                "project": project_code,
-                                "task": task_doc.name,
-                                "completed": task_status == "Completed",
-                            },
-                        )
-                else:
-                    print(time_sheet_doc.name)
-                    # for row in time_sheet_doc.time_logs:
-                    #     print(row)
+                if is_new_time_sheet:
+                    prev_time_logs = time_sheet_doc.time_logs
+                    print(row_num, prev_time_logs)
+                # for date, hrs in dates.items():
+                #     if len(prev_time_logs) == 0 or date not in prev_time_logs:
+                #         time_sheet_doc.append(
+                #             "time_logs",
+                #             {
+                #                 "activity_type": activity_code,
+                #                 "from_time": date,
+                #                 "hours": float(hrs),
+                #                 "project": project_code,
+                #                 "task": task_doc.name,
+                #                 "completed": task_status == "Completed",
+                #             },
+                #         )
 
-            time_sheet_doc.insert() if prev_hash_key == "" else time_sheet_doc.save()
+            time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
