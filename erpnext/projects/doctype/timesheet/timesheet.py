@@ -608,7 +608,7 @@ async def handler_insert_timesheets():
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
     frappe.db.commit()
-    await handle_update_A_colum_to_excel(data=excel_data_update)
+    # await handle_update_A_colum_to_excel(data=excel_data_update)
 
 
 def process_handle_insert_timesheets_from_excel():
