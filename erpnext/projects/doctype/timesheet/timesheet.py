@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-
+import datetime
 import json
 import asyncio
 
@@ -584,6 +584,7 @@ async def handler_insert_timesheets():
             time_sheet_doc.employee = emp_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
+			# TODO: update time logs
             if len(dates) > 0:
                 for date, hrs in dates.items():
                     time_sheet_doc.append(
@@ -591,7 +592,8 @@ async def handler_insert_timesheets():
                         {
                             "activity_type": activity_code,
                             "from_time": date,
-                            "hours": float(hrs),
+                            "to_time": date + datetime.timedelta(hours=float(hrs)),
+                            # "hours": float(hrs),
                             "project": project_code,
                             "task": task_doc.name,
                             "completed": task_status == "Completed",
@@ -603,7 +605,7 @@ async def handler_insert_timesheets():
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
     frappe.db.commit()
-    await handle_update_A_colum_to_excel(data=excel_data_update)
+    # await handle_update_A_colum_to_excel(data=excel_data_update)
     print(excel_data_update)
 
 
