@@ -415,7 +415,7 @@ def process_insert_tasks(
     task_doc.insert()
 
     if employee_name != "":
-        user_id = frappe.db.get_value("Employee", {"employee_name":employee_name}, ["user_id"])
+        user_id = frappe.db.get_value("Employee", {"full_name": employee_name}, ["user_id"])
         if user_id is not None: frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
     
     return task_doc
