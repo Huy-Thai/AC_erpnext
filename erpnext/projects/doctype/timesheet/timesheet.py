@@ -31,7 +31,7 @@ class Timesheet(Document):
 	def validate(self):
 		self.set_status()
 		self.validate_dates()
-		self.calculate_hours()
+		# self.calculate_hours()
 		self.validate_time_logs()
 		self.update_cost()
 		self.calculate_total_amounts()
