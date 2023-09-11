@@ -586,7 +586,7 @@ async def handler_insert_timesheets():
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
             if len(dates) > 0:
-                if is_new_time_sheet:
+                if not is_new_time_sheet:
                     prev_time_logs = time_sheet_doc.time_logs
                     print(row_num, prev_time_logs)
                 # for date, hrs in dates.items():
