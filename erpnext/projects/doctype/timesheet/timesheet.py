@@ -589,19 +589,26 @@ async def handler_insert_timesheets():
                 prev_time_logs = time_sheet_doc.time_logs
                 for date, hrs in dates.items():
                     prev_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
-                    print(date, prev_row)
-                    # if len(prev_time_logs) == 0 or prev_row == None:
-                    #     time_sheet_doc.append(
-                    #         "time_logs",
-                    #         {
-                    #             "activity_type": activity_code,
-                    #             "from_time": date,
-                    #             "hours": float(hrs),
-                    #             "project": project_code,
-                    #             "task": task_doc.name,
-                    #             "completed": task_status == "Completed",
-                    #         },
-                    #     )
+
+                    if prev_row == None:
+                        time_sheet_doc.append(
+                            "time_logs",
+                            {
+                                "activity_type": activity_code,
+                                "from_time": date,
+                                "hours": float(hrs),
+                                "project": project_code,
+                                "task": task_doc.name,
+                                "completed": task_status == "Completed",
+                            },
+                        )
+                        continue
+
+                    prev_row.activity_type = activity_code
+                    prev_row.hours = float(hrs)
+                    prev_row.project = project_code
+                    prev_row.task = task_doc.name
+                    prev_row.completed = task_status == "Completed"
 
             time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()
             if task_status == "Completed": time_sheet_doc.submit()
