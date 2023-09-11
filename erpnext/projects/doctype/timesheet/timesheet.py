@@ -572,7 +572,6 @@ async def handler_insert_timesheets():
             new_hash_key = hash_str_8_dig(new_key)
 
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
-            print(row_num, prev_hash_key)
             if prev_hash_key == new_hash_key: continue
 
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
@@ -584,29 +583,30 @@ async def handler_insert_timesheets():
             time_sheet_doc.employee = emp_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
-			# TODO: update time logs
             if len(dates) > 0:
-                for date, hrs in dates.items():
-                    time_sheet_doc.append(
-                        "time_logs",
-                        {
-                            "activity_type": activity_code,
-                            "from_time": date,
-                            "to_time": date + datetime.timedelta(hours=float(hrs)),
-                            "hours": float(hrs),
-                            "project": project_code,
-                            "task": task_doc.name,
-                            "completed": task_status == "Completed",
-                        },
-                    )
+                if prev_hash_key == "":
+                    for date, hrs in dates.items():
+                        time_sheet_doc.append(
+                            "time_logs",
+                            {
+                                "activity_type": activity_code,
+                                "from_time": date,
+                                "hours": float(hrs),
+                                "project": project_code,
+                                "task": task_doc.name,
+                                "completed": task_status == "Completed",
+                            },
+                        )
+                else:
+                    for row in time_sheet_doc.time_logs:
+                        print(row)
 
             time_sheet_doc.insert() if prev_hash_key == "" else time_sheet_doc.save()
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
     frappe.db.commit()
-    # await handle_update_A_colum_to_excel(data=excel_data_update)
-    print(excel_data_update)
+    await handle_update_A_colum_to_excel(data=excel_data_update)
 
 
 def process_handle_insert_timesheets_from_excel():
