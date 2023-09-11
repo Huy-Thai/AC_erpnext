@@ -588,9 +588,11 @@ async def handler_insert_timesheets():
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
                 for date, hrs in dates.items():
-                    prev_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
+                    other_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) != date), None)
+                    # curr_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
+                    print(row_num, other_row)
                     # is_time_log_exist = any(log.name == prev_row.name for log in prev_time_logs)
-                    print(row_num, prev_row.from_time)
+
                     # if not is_time_log_exist:
                     #     frappe.db.delete("Timesheet Detail", prev_row.name)
                     #     continue
