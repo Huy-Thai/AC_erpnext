@@ -586,14 +586,15 @@ async def handler_insert_timesheets():
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
             if len(dates) > 0:
-                prev_time_logs = time_sheet_doc.time_logs
+                logs = []
                 for date, hrs in dates.items():
-                    for prev_row in prev_time_logs:
+                    for prev_row in time_sheet_doc.time_logs:
+                        if prev_row.name in logs: continue
                         if convert_date_to_datetime(prev_row.from_time) == date:
-                            print("curr", prev_row.from_time)
+                            print("new", prev_row.from_time)
                             continue
-                        print("other", prev_row.from_time)
-                    # is_time_log_exist = any(log.name == prev_row.name for log in prev_time_logs)
+                        print("old", prev_row.from_time)
+                    # prev_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
 
                     # if not is_time_log_exist:
                     #     frappe.db.delete("Timesheet Detail", prev_row.name)
