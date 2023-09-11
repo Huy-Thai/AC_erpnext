@@ -552,21 +552,19 @@ async def handler_insert_timesheets():
             exp_end_date = convert_str_to_date_object(cell["F"])
 
             # TODO: update task
-            task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code}, ["name"], as_dict=1)
-            if task_doc is None:
-                task_doc = process_insert_tasks(
-                    custom_no=row_num,
-                    subject=task,
-                    project=project_code,
-                    status=task_status,
-                    priority=task_priority,
-                    progress=progress,
-                    exp_start_date=exp_start_date,
-                    parent_task=None,
-                    exp_end_date=exp_end_date,
-                    completed_on=exp_end_date if task_status == "Completed" else None,
-                    employee_name=employee_name,
-                )
+            task_doc = process_insert_tasks(
+                custom_no=row_num,
+                subject=task,
+                project=project_code,
+                status=task_status,
+                priority=task_priority,
+                progress=progress,
+                exp_start_date=exp_start_date,
+                parent_task=None,
+                exp_end_date=exp_end_date,
+                completed_on=exp_end_date if task_status == "Completed" else None,
+                employee_name=employee_name,
+            ) if task_doc is None else frappe.db.get_value("Task", {"subject": task, "project": project_code}, ["name"], as_dict=1)
 
             if employee_name == "": continue
             new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
@@ -589,6 +587,11 @@ async def handler_insert_timesheets():
                 prev_time_logs = time_sheet_doc.time_logs
                 for date, hrs in dates.items():
                     prev_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
+                    is_time_log_exist = frappe.db.exists("Timesheet Detail", prev_row.name)
+
+                    if not is_time_log_exist:
+                        frappe.db.delete("Timesheet Detail", prev_row.name)
+                        continue
 
                     if prev_row == None:
                         time_sheet_doc.append(
