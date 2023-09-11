@@ -188,7 +188,7 @@ def format_dates_with_excel_style(dates):
 def hash_str_8_dig(raw_str):
     encode = hashlib.sha1(raw_str.encode("utf-8")).hexdigest()
     hash_obj = int(encode, 16) % (10 ** 8)
-    return hash_obj
+    return str(hash_obj)
 
 
 def mapping_cell_with_raw_dates(cell, raw_dates):
