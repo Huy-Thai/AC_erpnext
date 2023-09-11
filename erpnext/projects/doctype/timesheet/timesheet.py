@@ -598,8 +598,9 @@ async def handler_insert_timesheets():
                             },
                         )
                 else:
-                    for row in time_sheet_doc.time_logs:
-                        print(row)
+                    print(time_sheet_doc.name)
+                    # for row in time_sheet_doc.time_logs:
+                    #     print(row)
 
             time_sheet_doc.insert() if prev_hash_key == "" else time_sheet_doc.save()
             if task_status == "Completed": time_sheet_doc.submit()
