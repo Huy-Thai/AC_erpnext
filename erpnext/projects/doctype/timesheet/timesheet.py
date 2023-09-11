@@ -586,22 +586,22 @@ async def handler_insert_timesheets():
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
             if len(dates) > 0:
-                if not is_new_time_sheet:
-                    prev_time_logs = time_sheet_doc.time_logs
-                    print(row_num, prev_time_logs)
-                # for date, hrs in dates.items():
-                #     if len(prev_time_logs) == 0 or date not in prev_time_logs:
-                #         time_sheet_doc.append(
-                #             "time_logs",
-                #             {
-                #                 "activity_type": activity_code,
-                #                 "from_time": date,
-                #                 "hours": float(hrs),
-                #                 "project": project_code,
-                #                 "task": task_doc.name,
-                #                 "completed": task_status == "Completed",
-                #             },
-                #         )
+                prev_time_logs = time_sheet_doc.time_logs
+                for date, hrs in dates.items():
+                    prev_row = next((row for row in prev_time_logs if row["from_time"] == date), None)
+                    print(date, prev_row)
+                    # if len(prev_time_logs) == 0 or prev_row == None:
+                    #     time_sheet_doc.append(
+                    #         "time_logs",
+                    #         {
+                    #             "activity_type": activity_code,
+                    #             "from_time": date,
+                    #             "hours": float(hrs),
+                    #             "project": project_code,
+                    #             "task": task_doc.name,
+                    #             "completed": task_status == "Completed",
+                    #         },
+                    #     )
 
             time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()
             if task_status == "Completed": time_sheet_doc.submit()
