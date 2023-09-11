@@ -588,10 +588,11 @@ async def handler_insert_timesheets():
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
                 for date, hrs in dates.items():
-                    other_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) != date), None)
-                    curr_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
-                    print("other", other_row)
-                    print("curr", curr_row)
+                    for prev_row in prev_time_logs:
+                        if convert_date_to_datetime(prev_row.from_time) == date:
+                            print("curr", prev_row.from_time)
+
+                        print("other", prev_row.from_time)
                     # is_time_log_exist = any(log.name == prev_row.name for log in prev_time_logs)
 
                     # if not is_time_log_exist:
