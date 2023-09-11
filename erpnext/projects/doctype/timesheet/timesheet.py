@@ -591,7 +591,7 @@ async def handler_insert_timesheets():
                     for prev_row in prev_time_logs:
                         if convert_date_to_datetime(prev_row.from_time) == date:
                             print("curr", prev_row.from_time)
-
+                            continue
                         print("other", prev_row.from_time)
                     # is_time_log_exist = any(log.name == prev_row.name for log in prev_time_logs)
 
