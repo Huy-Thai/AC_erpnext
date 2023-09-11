@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 
+from datetime import date
 from datetime import datetime
 from frappe.desk.form.assign_to import add as add_assignment
 from aiohttp import ClientSession
@@ -157,6 +158,12 @@ def excel_style(row, col):
         col, rem = divmod(col-1, 26)
         result[:0] = LETTERS[rem]
     return ''.join(result)
+
+
+def convert_date_to_datetime(date):
+    min_time = datetime.min.time()
+    new_datetime = datetime.combine(date, min_time)
+    return new_datetime
 
 
 def convert_str_to_date_object(raw, is_abb_month=False):

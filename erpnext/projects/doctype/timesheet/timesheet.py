@@ -16,7 +16,7 @@ from erpnext.projects.doctype.task.task import process_insert_tasks
 from erpnext.utilities.ms_graph import (
     TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS,
 	handle_get_data_raws, handle_update_A_colum_to_excel,
-	convert_str_to_date_object, hash_str_8_dig, split_str_get_key, mapping_cell_with_raw_dates )
+	convert_date_to_datetime, convert_str_to_date_object, hash_str_8_dig, split_str_get_key, mapping_cell_with_raw_dates )
 
 
 class OverlapError(frappe.ValidationError):
@@ -587,13 +587,10 @@ async def handler_insert_timesheets():
 
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
-                for row in prev_time_logs:
-                    print(row.from_time)
-                    print(type(row.from_time))
-                # for date, hrs in dates.items():
-                #     print(date, prev_row)
-                #     prev_row = next((row for row in prev_time_logs if row.from_time == date), None)
-                #     print(date, prev_row)
+                for date, hrs in dates.items():
+                    print(date, prev_row)
+                    prev_row = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
+                    print(date, prev_row)
                     # if len(prev_time_logs) == 0 or prev_row == None:
                     #     time_sheet_doc.append(
                     #         "time_logs",
