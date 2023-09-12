@@ -590,12 +590,12 @@ async def handler_insert_timesheets():
                 prev_time_logs = time_sheet_doc.time_logs
                 for row in prev_time_logs:
                     if convert_date_to_datetime(row.from_time) not in dates:
-                        time_sheet_doc.total_hours -= float(row.hours)
+                        time_sheet_doc.total_hours -= flt(row.hours)
                         frappe.db.delete("Timesheet Detail", row.name)
 
                 for date, hrs in dates.items():
                     curr_log = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
-                    time_sheet_doc.total_hours += float(hrs)
+                    time_sheet_doc.total_hours += flt(hrs)
 
                     if curr_log is None:
                         time_sheet_doc.append(
@@ -603,7 +603,7 @@ async def handler_insert_timesheets():
                             {
                                 "activity_type": activity_code,
                                 "from_time": date,
-                                "hours": float(hrs),
+                                "hours": flt(hrs),
                                 "project": project_code,
                                 "task": task_doc.name,
                                 "completed": task_status == "Completed",
@@ -612,7 +612,7 @@ async def handler_insert_timesheets():
                         continue
 
                     curr_log.activity_type = activity_code
-                    curr_log.hours = float(hrs)
+                    curr_log.hours = flt(hrs)
                     curr_log.project = project_code
                     curr_log.task = task_doc.name
                     curr_log.completed = task_status == "Completed"
