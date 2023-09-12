@@ -590,7 +590,9 @@ async def handler_insert_timesheets():
                 prev_time_logs = time_sheet_doc.time_logs
                 for row in prev_time_logs:
                     if convert_date_to_datetime(row.from_time) not in dates:
-                        time_sheet_doc.total_hours -= flt(row.hours)
+                        print("total hours", time_sheet_doc.total_hours)
+                        print("prev hours", row.hours)
+                        # time_sheet_doc.total_hours -= flt(row.hours)
                         frappe.db.delete("Timesheet Detail", row.name)
 
                 for date, hrs in dates.items():
