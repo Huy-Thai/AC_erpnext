@@ -44,6 +44,7 @@ class Timesheet(Document):
 				row.hours = time_diff_in_hours(row.to_time, row.from_time)
 
 	def calculate_total_amounts(self):
+		print("Doc", self.total_hours)
 		self.total_hours = 0.0
 		self.total_billable_hours = 0.0
 		self.total_billed_hours = 0.0
