@@ -551,6 +551,13 @@ async def handler_insert_timesheets():
             exp_start_date = convert_str_to_date_object(cell["E"])
             exp_end_date = convert_str_to_date_object(cell["F"])
 
+            if employee_name == "": continue
+            new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
+            new_hash_key = hash_str_8_dig(new_key)
+
+            prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
+            if prev_hash_key == new_hash_key: continue
+			
             # TODO: update task
             task_doc = frappe.db.get_value("Task", {"subject": task, "project": project_code}, ["name"], as_dict=1)
             if task_doc is None:
@@ -568,14 +575,7 @@ async def handler_insert_timesheets():
                     employee_name=employee_name,
                 )
 
-            if employee_name == "": continue
-            new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
-            new_hash_key = hash_str_8_dig(new_key)
-
-            prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
-            if prev_hash_key == new_hash_key: continue
             is_new_time_sheet = prev_hash_key == ""
-
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             time_sheet_doc = frappe.new_doc("Timesheet") if is_new_time_sheet else frappe.get_doc("Timesheet", time_sheet_id)
 
