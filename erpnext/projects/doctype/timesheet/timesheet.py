@@ -592,6 +592,7 @@ async def handler_insert_timesheets():
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
 
             if len(dates) > 0:
+                time_sheet_doc.total_hours = 0.0
                 prev_time_logs = time_sheet_doc.time_logs
                 remove_time_log_is_not_exist_from_new_dates(time_logs=prev_time_logs, new_dates=dates)
 
