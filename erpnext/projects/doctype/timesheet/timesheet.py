@@ -584,6 +584,7 @@ async def handler_insert_timesheets():
             time_sheet_doc.company = "ACONS"
             time_sheet_doc.employee = emp_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
+            time_sheet_doc.total_hours = 0.0
             total_hours = 0.0
 
             if len(dates) > 0:
