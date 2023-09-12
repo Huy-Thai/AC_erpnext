@@ -44,7 +44,6 @@ class Timesheet(Document):
 				row.hours = time_diff_in_hours(row.to_time, row.from_time)
 
 	def calculate_total_amounts(self):
-		print("Doc", self.total_hours)
 		self.total_hours = 0.0
 		self.total_billable_hours = 0.0
 		self.total_billed_hours = 0.0
@@ -585,8 +584,6 @@ async def handler_insert_timesheets():
             time_sheet_doc.company = "ACONS"
             time_sheet_doc.employee = emp_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
-            time_sheet_doc.total_hours = 0.0
-            total_hours = 0.0
 
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
@@ -595,11 +592,10 @@ async def handler_insert_timesheets():
                     for row in prev_time_logs:
                         if convert_date_to_datetime(row.from_time) not in dates:
                             frappe.db.delete("Timesheet Detail", row.name)
+                    time_sheet_doc.calculate_total_amounts()
 
                 for date, hrs in dates.items():
                     curr_log = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
-                    total_hours += flt(hrs)
-
                     if curr_log is None:
                         time_sheet_doc.append(
                             "time_logs",
@@ -620,8 +616,6 @@ async def handler_insert_timesheets():
                     curr_log.task = task_doc.name
                     curr_log.completed = task_status == "Completed"
 
-            print("total_hours", total_hours)
-            time_sheet_doc.total_hours = total_hours
             time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
