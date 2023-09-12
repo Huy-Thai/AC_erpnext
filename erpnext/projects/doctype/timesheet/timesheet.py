@@ -1,10 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-import datetime
 import json
 import asyncio
-import copy
 
 import frappe
 from frappe import _
@@ -585,7 +583,7 @@ async def handler_insert_timesheets():
             time_sheet_doc.company = "ACONS"
             time_sheet_doc.employee = emp_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
-            total_hours = copy.deepcopy(time_sheet_doc.total_hours)
+            total_hours = 0.0
 
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
@@ -593,7 +591,6 @@ async def handler_insert_timesheets():
                 if len(prev_time_logs) > 0:
                     for row in prev_time_logs:
                         if convert_date_to_datetime(row.from_time) not in dates:
-                            total_hours -= flt(row.hours)
                             frappe.db.delete("Timesheet Detail", row.name)
 
                 for date, hrs in dates.items():
