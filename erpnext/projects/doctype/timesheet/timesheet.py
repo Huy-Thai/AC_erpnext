@@ -44,6 +44,7 @@ class Timesheet(Document):
 				row.hours = time_diff_in_hours(row.to_time, row.from_time)
 
 	def calculate_total_amounts(self):
+		print("prev total hours", self.total_hours)
 		self.total_hours = 0.0
 		self.total_billable_hours = 0.0
 		self.total_billed_hours = 0.0
@@ -589,10 +590,12 @@ async def handler_insert_timesheets():
                 prev_time_logs = time_sheet_doc.time_logs
 
                 if len(prev_time_logs) > 0:
+                    rm_logs = []
                     for row in prev_time_logs:
                         if convert_date_to_datetime(row.from_time) not in dates:
+                            rm_logs.append(row.name)
                             frappe.db.delete("Timesheet Detail", row.name)
-                    time_sheet_doc.calculate_total_amounts()
+                    if len(rm_logs) > 0: time_sheet_doc.calculate_total_amounts()
 
                 for date, hrs in dates.items():
                     curr_log = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
