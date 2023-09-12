@@ -66,6 +66,7 @@ class Timesheet(Document):
 				self.total_billed_amount += flt(d.billing_amount) if d.sales_invoice else 0.0
 				self.base_total_billed_amount += flt(d.base_billing_amount) if d.sales_invoice else 0.0
 				self.total_billed_hours += flt(d.billing_hours) if d.sales_invoice else 0.0
+		print("new total hours", self.total_hours)
 
 	def calculate_percentage_billed(self):
 		self.per_billed = 0
