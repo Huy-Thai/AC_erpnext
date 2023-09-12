@@ -44,7 +44,6 @@ class Timesheet(Document):
 				row.hours = time_diff_in_hours(row.to_time, row.from_time)
 
 	def calculate_total_amounts(self):
-		print("prev total hours", self.total_hours)
 		self.total_hours = 0.0
 		self.total_billable_hours = 0.0
 		self.total_billed_hours = 0.0
@@ -66,7 +65,6 @@ class Timesheet(Document):
 				self.total_billed_amount += flt(d.billing_amount) if d.sales_invoice else 0.0
 				self.base_total_billed_amount += flt(d.base_billing_amount) if d.sales_invoice else 0.0
 				self.total_billed_hours += flt(d.billing_hours) if d.sales_invoice else 0.0
-		print("new total hours", self.total_hours)
 
 	def calculate_percentage_billed(self):
 		self.per_billed = 0
@@ -589,12 +587,6 @@ async def handler_insert_timesheets():
             time_sheet_doc.time_logs = []
 
             if len(dates) > 0:
-                # prev_time_logs = time_sheet_doc.time_logs
-
-                # if len(prev_time_logs) > 0:
-                #     for row in prev_time_logs:
-                #         if convert_date_to_datetime(row.from_time) not in dates: frappe.db.delete("Timesheet Detail", row.name)
-
                 for date, hrs in dates.items():
                     time_sheet_doc.append(
                         "time_logs",
@@ -608,7 +600,6 @@ async def handler_insert_timesheets():
                         },
                     )
 
-            print("logs", time_sheet_doc.time_logs)
             time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
