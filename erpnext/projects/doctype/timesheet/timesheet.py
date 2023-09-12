@@ -586,13 +586,14 @@ async def handler_insert_timesheets():
             time_sheet_doc.company = "ACONS"
             time_sheet_doc.employee = emp_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
+            time_sheet_doc.time_logs = []
 
             if len(dates) > 0:
-                prev_time_logs = time_sheet_doc.time_logs
+                # prev_time_logs = time_sheet_doc.time_logs
 
-                if len(prev_time_logs) > 0:
-                    for row in prev_time_logs:
-                        if convert_date_to_datetime(row.from_time) not in dates: frappe.db.delete("Timesheet Detail", row.name)
+                # if len(prev_time_logs) > 0:
+                #     for row in prev_time_logs:
+                #         if convert_date_to_datetime(row.from_time) not in dates: frappe.db.delete("Timesheet Detail", row.name)
 
                 for date, hrs in dates.items():
                     time_sheet_doc.append(
