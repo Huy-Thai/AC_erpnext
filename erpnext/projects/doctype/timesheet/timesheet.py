@@ -525,7 +525,6 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
-    status_cancel_update = ["Completed", "Cancelled"]
     data_raws = await handle_get_data_raws(num_start=210, num_end=220)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
@@ -580,7 +579,7 @@ async def handler_insert_timesheets():
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             time_sheet_doc = frappe.new_doc("Timesheet") if is_new_time_sheet else frappe.get_doc("Timesheet", time_sheet_id)
 
-            if status_cancel_update.count(time_sheet_doc.status) > 0: continue
+            if time_sheet_doc.status == "Submitted": continue
 
             time_sheet_doc.naming_series = "TS-.YYYY.-"
             time_sheet_doc.parent_project = project_code
