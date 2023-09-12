@@ -580,7 +580,7 @@ async def handler_insert_timesheets():
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             time_sheet_doc = frappe.new_doc("Timesheet") if is_new_time_sheet else frappe.get_doc("Timesheet", time_sheet_id)
 
-            if time_sheet_doc.status in status_cancel_update: continue
+            if status_cancel_update.count(time_sheet_doc.status) > 0: continue
 
             time_sheet_doc.naming_series = "TS-.YYYY.-"
             time_sheet_doc.parent_project = project_code
