@@ -520,13 +520,7 @@ def get_list_context(context=None):
 		"title": _("Timesheets"),
 		"get_list": get_timesheets_list,
 		"row_template": "templates/includes/timesheet/timesheet_row.html",
-	}
-
-
-def remove_time_log_is_not_exist_from_new_dates(time_logs, new_dates):
-    for row in time_logs:
-        if convert_date_to_datetime(row.from_time) not in new_dates:
-            frappe.db.delete("Timesheet Detail", row.name)
+	}    
 
 
 async def handler_insert_timesheets():
@@ -594,7 +588,10 @@ async def handler_insert_timesheets():
             if len(dates) > 0:
                 time_sheet_doc.total_hours = 0.0
                 prev_time_logs = time_sheet_doc.time_logs
-                remove_time_log_is_not_exist_from_new_dates(time_logs=prev_time_logs, new_dates=dates)
+                for row in prev_time_logs:
+                    if convert_date_to_datetime(row.from_time) not in dates:
+                        time_sheet_doc.total_hours -= float(row.hours)
+                        frappe.db.delete("Timesheet Detail", row.name)
 
                 for date, hrs in dates.items():
                     curr_log = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
@@ -619,9 +616,6 @@ async def handler_insert_timesheets():
                     curr_log.project = project_code
                     curr_log.task = task_doc.name
                     curr_log.completed = task_status == "Completed"
-                else:
-                    time_sheet_doc.total_hours = 0.0
-                    remove_time_log_is_not_exist_from_new_dates(time_logs=prev_time_logs, new_dates=dates)
 
             time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
             if task_status == "Completed": time_sheet_doc.submit()
