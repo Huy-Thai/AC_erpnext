@@ -591,12 +591,8 @@ async def handler_insert_timesheets():
                 prev_time_logs = time_sheet_doc.time_logs
 
                 if len(prev_time_logs) > 0:
-                    rm_logs = []
                     for row in prev_time_logs:
-                        if convert_date_to_datetime(row.from_time) not in dates:
-                            rm_logs.append(row.name)
-                            frappe.db.delete("Timesheet Detail", row.name)
-                    if len(rm_logs) > 0: time_sheet_doc.calculate_total_amounts()
+                        if convert_date_to_datetime(row.from_time) not in dates: frappe.db.delete("Timesheet Detail", row.name)
 
                 for date, hrs in dates.items():
                     curr_log = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
@@ -620,6 +616,7 @@ async def handler_insert_timesheets():
                     curr_log.task = task_doc.name
                     curr_log.completed = task_status == "Completed"
 
+            print("logs", time_sheet_doc.time_logs)
             time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
