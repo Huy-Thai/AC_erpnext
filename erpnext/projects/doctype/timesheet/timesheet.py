@@ -523,6 +523,12 @@ def get_list_context(context=None):
 	}
 
 
+def remove_time_log_is_not_exist_from_new_dates(time_logs, new_dates):
+    for row in time_logs:
+        if convert_date_to_datetime(row.from_time) not in new_dates:
+            frappe.db.delete("Timesheet Detail", row.name)
+
+
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
     data_raws = await handle_get_data_raws(num_start=210, num_end=220)
@@ -587,12 +593,12 @@ async def handler_insert_timesheets():
 
             if len(dates) > 0:
                 prev_time_logs = time_sheet_doc.time_logs
-                for row in prev_time_logs:
-                    if convert_date_to_datetime(row.from_time) not in dates:
-                        frappe.db.delete("Timesheet Detail", row.name)
+                remove_time_log_is_not_exist_from_new_dates(time_logs=prev_time_logs, new_dates=dates)
 
                 for date, hrs in dates.items():
                     curr_log = next((row for row in prev_time_logs if convert_date_to_datetime(row.from_time) == date), None)
+                    time_sheet_doc.total_hours += float(hrs)
+
                     if curr_log is None:
                         time_sheet_doc.append(
                             "time_logs",
@@ -612,13 +618,11 @@ async def handler_insert_timesheets():
                     curr_log.project = project_code
                     curr_log.task = task_doc.name
                     curr_log.completed = task_status == "Completed"
+                else:
+                    time_sheet_doc.total_hours = 0.0
+                    remove_time_log_is_not_exist_from_new_dates(time_logs=prev_time_logs, new_dates=dates)
 
-            if is_new_time_sheet: 
-                time_sheet_doc.insert()
-            else:
-                time_sheet_doc.calculate_total_amounts()
-                time_sheet_doc.save()
-
+            time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 

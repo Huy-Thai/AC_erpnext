@@ -1,7 +1,6 @@
 import asyncio
 import hashlib
 
-from datetime import date
 from datetime import datetime
 from frappe.desk.form.assign_to import add as add_assignment
 from aiohttp import ClientSession
@@ -268,6 +267,7 @@ async def handle_update_A_colum_to_excel(data):
                 "numberFormat" : [[None]]
             }
 
+            # TODO: implement payload here
             promise = asyncio.ensure_future(msGraph.patch_worksheet(
                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
                 file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
