@@ -617,7 +617,7 @@ async def handler_insert_timesheets():
                     curr_log.task = task_doc.name
                     curr_log.completed = task_status == "Completed"
 
-            time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
+            if is_new_time_sheet: time_sheet_doc.insert()
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
