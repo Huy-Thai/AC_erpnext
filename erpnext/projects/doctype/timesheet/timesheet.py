@@ -584,9 +584,9 @@ async def handler_insert_timesheets():
             time_sheet_doc.company = "ACONS"
             time_sheet_doc.employee = emp_name
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
+            time_sheet_doc.total_hours = 0.0
 
             if len(dates) > 0:
-                time_sheet_doc.total_hours = 0.0
                 prev_time_logs = time_sheet_doc.time_logs
                 for row in prev_time_logs:
                     if convert_date_to_datetime(row.from_time) not in dates:
@@ -617,7 +617,7 @@ async def handler_insert_timesheets():
                     curr_log.task = task_doc.name
                     curr_log.completed = task_status == "Completed"
 
-            if is_new_time_sheet: time_sheet_doc.insert()
+            time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
             if task_status == "Completed": time_sheet_doc.submit()
             excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
