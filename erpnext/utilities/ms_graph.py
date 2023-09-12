@@ -175,10 +175,10 @@ def convert_str_to_date_object(raw, is_abb_month=False):
         date_str = raw[:-2] + f"20{raw[-2:]}"
         date_object = datetime.strptime(date_str, regex)
         return date_object
-    except Exception as err:
+    except ValueError as err:
         print(f"Convert string to date object failed with: {err}")
         return None
-    
+
 
 def format_dates_with_excel_style(dates):
     if dates is None: return None
