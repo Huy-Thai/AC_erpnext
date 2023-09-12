@@ -588,7 +588,7 @@ async def handler_insert_timesheets():
             time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
             time_sheet_doc.time_logs = []
 
-            if len(dates) > 0:
+            if len(dates) > 0 and activity_code != "":
                 for date, hrs in dates.items():
                     time_sheet_doc.append(
                         "time_logs",
