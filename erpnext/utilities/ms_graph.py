@@ -47,8 +47,8 @@ class MSGraph:
 
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
         self.access_token = resp["access_token"] if resp else None
-        frappe.cache.set_value(MS_ACCESS_TOKEN_KEY, self.access_token, expires_in_sec=60*60)
-        frappe.cache.set_value(MS_ACCESS_TOKEN_EXPIRED_KEY, now_tz_hcm(), expires_in_sec=60*60)
+        frappe.cache().set_value(MS_ACCESS_TOKEN_KEY, self.access_token, expires_in_sec=60*60)
+        frappe.cache().set_value(MS_ACCESS_TOKEN_EXPIRED_KEY, now_tz_hcm(), expires_in_sec=60*60)
         return
 
 
@@ -158,8 +158,8 @@ def now_tz_hcm():
 
 
 def is_access_token_expired():
-    access_token = frappe.cache.get_value(MS_ACCESS_TOKEN_KEY)
-    expired_at = frappe.cache.get_value(MS_ACCESS_TOKEN_EXPIRED_KEY)
+    access_token = frappe.cache().get_value(MS_ACCESS_TOKEN_KEY)
+    expired_at = frappe.cache().get_value(MS_ACCESS_TOKEN_EXPIRED_KEY)
     print(access_token)
     print(expired_at)
     if access_token is None: return True
