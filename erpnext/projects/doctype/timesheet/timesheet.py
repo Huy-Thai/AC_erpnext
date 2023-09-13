@@ -14,7 +14,7 @@ from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_insert_tasks
 from erpnext.utilities.ms_graph import (
-    TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, TIME_SHEET_STATUS_CANCEL_UPDATE,
+    TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, TIME_SHEET_STATUS_CANCEL_UPDATE, MS_GRAPH_ACCESS_TOKEN_KEY,
 	handle_get_data_raws, request_update_A_colum_to_excel,
 	convert_str_to_date_object, hash_str_8_dig, split_str_get_key, mapping_cell_with_raw_dates )
 
@@ -611,3 +611,4 @@ async def handler_insert_timesheets():
 
 def process_handle_insert_timesheets_from_excel():
 	asyncio.run(handler_insert_timesheets())
+	frappe.cache.delete_value(MS_GRAPH_ACCESS_TOKEN_KEY)

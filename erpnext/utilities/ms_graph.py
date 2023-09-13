@@ -11,7 +11,7 @@ from functools import cache
 _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
-_MS_GRAPH_ACCESS_TOKEN_KEY = "ms_graph_access_token|expired_at"
+MS_GRAPH_ACCESS_TOKEN_KEY = "ms_graph_access_token|expired_at"
 
 TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
 TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
@@ -33,7 +33,7 @@ class MSGraph:
 
     async def get_access_token(self):
         is_expired = is_access_token_expired()
-        print("1")
+        print(is_expired)
         if not is_expired: return self.access_token
 
         AUTH_URL = f"https://login.microsoftonline.com/{_TENANT_ID}/oauth2/v2.0/token"
@@ -44,7 +44,6 @@ class MSGraph:
             "client_secret": _CLIENT_SECRET,
         }
 
-        print("2")
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
         self.access_token = resp["access_token"] if resp else None
         frappe.cache.set_value(_MS_GRAPH_ACCESS_TOKEN_KEY, "access_token", self.access_token)
@@ -160,10 +159,13 @@ def now_tz_hcm():
 def is_access_token_expired():
     access_token = frappe.cache.hget(_MS_GRAPH_ACCESS_TOKEN_KEY, "access_token")
     expired_at = frappe.cache.hget(_MS_GRAPH_ACCESS_TOKEN_KEY, "expired_at")
+    print(access_token)
+    print(expired_at)
     if access_token is None: return True
 
     now = now_tz_hcm()
     minute = (now - expired_at).total_seconds() / 60
+    print(minute)
     if minute > 55.0: return True
     return False
 
