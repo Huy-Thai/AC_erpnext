@@ -238,8 +238,8 @@ def request_update_A_colum_to_excel(access_token, value, range_num):
         "formulas" : [[None]],
         "numberFormat" : [[None]]
     }
-    r = requests.patch(url, data=json.dumps(payload), headers=head)
-    print(r.status_code)
+    res = requests.patch(url, data=json.dumps(payload), headers=head)
+    return res
 
 
 async def handle_get_data_raws(num_start, num_end):
