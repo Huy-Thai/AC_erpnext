@@ -229,7 +229,7 @@ def frappe_assign(assigns, doctype, name, description=None, priority=None, notif
         "notify": notify
     })
 
-def request_update_A_colum_to_excel(access_token, values, range_num):
+def request_update_A_colum_to_excel(access_token, value, range_num):
     import requests
     import json
 
@@ -243,13 +243,13 @@ def request_update_A_colum_to_excel(access_token, values, range_num):
     file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
     worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
     url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}/range(address='A{range_num}')"
-    payload = json.dumps({
-        "values" : values,
+    payload = {
+        "values" : [[value]],
         "formulas" : [[None]],
         "numberFormat" : [[None]]
-    })
+    }
 
-    r = requests.patch(url, data=payload, headers=head)
+    r = requests.patch(url, data=json.dumps(payload), headers=head)
     print(r.status_code)
     print(r.json())
 
