@@ -34,8 +34,10 @@ class MSGraph:
 
     async def get_access_token(self):
         is_expired = is_access_token_expired()
-        print(is_expired)
-        if not is_expired: return self.access_token
+        if not is_expired:
+            print("1")
+            self.access_token = frappe.cache().get_value(MS_ACCESS_TOKEN_KEY)
+            return
 
         AUTH_URL = f"https://login.microsoftonline.com/{_TENANT_ID}/oauth2/v2.0/token"
         PAYLOAD = {
@@ -44,7 +46,7 @@ class MSGraph:
             "scope": "https://graph.microsoft.com/.default",
             "client_secret": _CLIENT_SECRET,
         }
-
+        print("2")
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
         expired_at = now_tz_hcm() if resp else None
         res_access_token = resp["access_token"] if resp else None
@@ -163,13 +165,10 @@ def now_tz_hcm():
 def is_access_token_expired():
     access_token = frappe.cache().get_value(MS_ACCESS_TOKEN_KEY)
     expired_at = frappe.cache().get_value(MS_ACCESS_TOKEN_EXPIRED_KEY)
-    print(access_token)
-    print(expired_at)
     if access_token is None: return True
 
     now = now_tz_hcm()
     minute = (now - expired_at).total_seconds() / 60
-    print(minute)
     if minute > 58.0: return True
     return False
 
