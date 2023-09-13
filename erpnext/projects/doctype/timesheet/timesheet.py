@@ -14,7 +14,7 @@ from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_insert_tasks
 from erpnext.utilities.ms_graph import (
-    TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS,
+    TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, TIME_SHEET_STATUS_CANCEL_UPDATE,
 	handle_get_data_raws, handle_update_A_colum_to_excel,
 	convert_date_to_datetime, convert_str_to_date_object, hash_str_8_dig, split_str_get_key, mapping_cell_with_raw_dates )
 
@@ -579,32 +579,31 @@ async def handler_insert_timesheets():
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             time_sheet_doc = frappe.new_doc("Timesheet") if is_new_time_sheet else frappe.get_doc("Timesheet", time_sheet_id)
 
-            if time_sheet_doc.status == "Submitted" or emp_name is None: continue
+            if time_sheet_doc.status not in TIME_SHEET_STATUS_CANCEL_UPDATE and emp_name is not None:
+                time_sheet_doc.naming_series = "TS-.YYYY.-"
+                time_sheet_doc.parent_project = project_code
+                time_sheet_doc.company = "ACONS"
+                time_sheet_doc.employee = emp_name
+                time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
+                time_sheet_doc.time_logs = []
 
-            time_sheet_doc.naming_series = "TS-.YYYY.-"
-            time_sheet_doc.parent_project = project_code
-            time_sheet_doc.company = "ACONS"
-            time_sheet_doc.employee = emp_name
-            time_sheet_doc.status = TIME_SHEET_STATUS[task_status]
-            time_sheet_doc.time_logs = []
+                if len(dates) > 0 and activity_code != "":
+                    for date, hrs in dates.items():
+                        time_sheet_doc.append(
+                            "time_logs",
+                            {
+                                "activity_type": activity_code,
+                                "from_time": date,
+                                "hours": flt(hrs),
+                                "project": project_code,
+                                "task": task_doc.name,
+                                "completed": task_status == "Completed",
+                            },
+                        )
 
-            if len(dates) > 0 and activity_code != "":
-                for date, hrs in dates.items():
-                    time_sheet_doc.append(
-                        "time_logs",
-                        {
-                            "activity_type": activity_code,
-                            "from_time": date,
-                            "hours": flt(hrs),
-                            "project": project_code,
-                            "task": task_doc.name,
-                            "completed": task_status == "Completed",
-                        },
-                    )
-
-            time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
-            if task_status == "Completed": time_sheet_doc.submit()
-            excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
+                time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
+                if task_status == "Completed": time_sheet_doc.submit()
+                excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
     frappe.db.commit()
     await handle_update_A_colum_to_excel(data=excel_data_update)
