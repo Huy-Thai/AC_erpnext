@@ -37,8 +37,9 @@ class MSGraph:
             "client_secret": _CLIENT_SECRET,
         }
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
-        self.access_token = resp["access_token"] if resp else None
-        return
+        access_token = resp["access_token"] if resp else None
+        self.access_token = access_token
+        return access_token
 
 
     async def get_site(self):
@@ -83,7 +84,6 @@ class MSGraph:
 
     async def patch_worksheet(self, site_id, file_id, worksheet_id, range_rows, payload):
         assert worksheet_id != None and file_id != None and site_id != None, "Param worksheet_id and file_id and site_id are required"
-        await self.get_access_token()
         WORKSHEET_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}"
         WORKSHEET_DETAIL_URL = WORKSHEET_URL + f"/range(address='{range_rows}')"
         resp = await http_client(
@@ -98,8 +98,6 @@ class MSGraph:
 
     async def get_data_on_excel_file_by_range(self, range_rows, row_num=None):
         try:
-            await self.get_access_token()
-
             # TODO: build payload for get all file of teams
             response = await self.get_worksheet_detail(
                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
@@ -256,6 +254,7 @@ async def handle_get_data_raws(num_start, num_end):
             file_name="pan_planner_test.xlsm",
             worksheet_name="From W1_2023",
         )
+        access_token = await msGraph.get_access_token()
 
         date_row_num = 24
         dates = await msGraph.get_data_on_excel_file_by_range(range_rows=f"S{date_row_num}:OO{date_row_num}")
@@ -267,7 +266,7 @@ async def handle_get_data_raws(num_start, num_end):
             promises.append(promise)
         row_object = await asyncio.gather(*promises)
 
-        return row_object, date_object, msGraph.access_token
+        return row_object, date_object, access_token
 
 
 async def handle_update_A_colum_to_excel(data):
