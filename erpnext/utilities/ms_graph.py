@@ -37,9 +37,8 @@ class MSGraph:
             "client_secret": _CLIENT_SECRET,
         }
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
-        access_token = resp["access_token"] if resp else None
-        self.access_token = access_token
-        return access_token
+        self.access_token = resp["access_token"] if resp else None
+        return
 
 
     async def get_site(self):
@@ -254,7 +253,7 @@ async def handle_get_data_raws(num_start, num_end):
             file_name="pan_planner_test.xlsm",
             worksheet_name="From W1_2023",
         )
-        access_token = await msGraph.get_access_token()
+        await msGraph.get_access_token()
 
         date_row_num = 24
         dates = await msGraph.get_data_on_excel_file_by_range(range_rows=f"S{date_row_num}:OO{date_row_num}")
@@ -266,7 +265,7 @@ async def handle_get_data_raws(num_start, num_end):
             promises.append(promise)
         row_object = await asyncio.gather(*promises)
 
-        return row_object, date_object, access_token
+        return row_object, date_object, msGraph.access_token
 
 
 async def handle_update_A_colum_to_excel(data):
