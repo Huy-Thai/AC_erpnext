@@ -525,7 +525,7 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
-    data_raws = await handle_get_data_raws(num_start=210, num_end=895)
+    data_raws = await handle_get_data_raws(num_start=210, num_end=240)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
     ms_access_token = data_raws[2]
@@ -605,9 +605,7 @@ async def handler_insert_timesheets():
                 if task_status == "Completed": time_sheet_doc.submit()
                 A_value = f"{new_hash_key}--{time_sheet_doc.name}"
                 request_update_A_colum_to_excel(access_token=ms_access_token, value=A_value, range_num=row_num)
-
-    frappe.db.commit()
-
+        frappe.db.commit()
 
 def process_handle_insert_timesheets_from_excel():
 	asyncio.run(handler_insert_timesheets())
