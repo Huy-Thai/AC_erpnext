@@ -1,9 +1,7 @@
-import frappe
 import asyncio
 import hashlib
 
-from frappe.utils import time_diff
-from datetime import datetime, timedelta
+from datetime import datetime
 from frappe.desk.form.assign_to import add as add_assignment
 from aiohttp import ClientSession
 from functools import cache
@@ -11,8 +9,6 @@ from functools import cache
 _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
-MS_ACCESS_TOKEN_KEY = "ms_access_token"
-MS_ACCESS_TOKEN_EXPIRED_KEY = "ms_access_token_expired_at"
 
 TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
 TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
@@ -33,12 +29,6 @@ class MSGraph:
 
 
     async def get_access_token(self):
-        is_expired = is_access_token_expired()
-        if not is_expired:
-            print("1")
-            self.access_token = frappe.cache().get_value(MS_ACCESS_TOKEN_KEY)
-            return
-
         AUTH_URL = f"https://login.microsoftonline.com/{_TENANT_ID}/oauth2/v2.0/token"
         PAYLOAD = {
             "grant_type": "client_credentials",
@@ -46,14 +36,8 @@ class MSGraph:
             "scope": "https://graph.microsoft.com/.default",
             "client_secret": _CLIENT_SECRET,
         }
-        print("2")
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
-        expired_at = now_tz_hcm() if resp else None
-        res_access_token = resp["access_token"] if resp else None
-        self.access_token = res_access_token
-
-        frappe.cache().set_value(MS_ACCESS_TOKEN_KEY, res_access_token, expires_in_sec=60*60)
-        frappe.cache().set_value(MS_ACCESS_TOKEN_EXPIRED_KEY, expired_at, expires_in_sec=60*60)
+        self.access_token = resp["access_token"] if resp else None
         return
 
 
@@ -153,24 +137,6 @@ async def http_client(url, session, access_token=None, payload=None, method="GET
     except Exception as err:
         print(f"{method} {url} failed with: {err}")
         return None
-
-
-def now_tz_hcm():
-    import pytz
-    VN_TZ = pytz.timezone("Asia/Ho_Chi_Minh")
-    now = datetime.now().astimezone(VN_TZ)
-    return now
-
-
-def is_access_token_expired():
-    access_token = frappe.cache().get_value(MS_ACCESS_TOKEN_KEY)
-    expired_at = frappe.cache().get_value(MS_ACCESS_TOKEN_EXPIRED_KEY)
-    if access_token is None: return True
-
-    now = now_tz_hcm()
-    minute = (now - expired_at).total_seconds() / 60
-    if minute > 58.0: return True
-    return False
 
 
 def get_result_in_arr_dict(arr, key, value):
