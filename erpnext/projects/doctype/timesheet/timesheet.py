@@ -15,7 +15,7 @@ from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_insert_tasks
 from erpnext.utilities.ms_graph import (
     TASK_PRIORITY, TASK_STATUS, TIME_SHEET_STATUS, TIME_SHEET_STATUS_CANCEL_UPDATE,
-	handle_get_data_raws, handle_update_A_colum_to_excel,
+	handle_get_data_raws, handle_update_A_colum_to_excel, request_update_A_colum_to_excel,
 	convert_date_to_datetime, convert_str_to_date_object, hash_str_8_dig, split_str_get_key, mapping_cell_with_raw_dates )
 
 
@@ -525,10 +525,10 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700 895
-    data_raws = await handle_get_data_raws(num_start=210, num_end=240)
+    data_raws = await handle_get_data_raws(num_start=210, num_end=500)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
-    excel_data_update = {}
+    ms_access_token = data_raws[2]
 
     for sheet in raw_time_sheets:
         if sheet is None: continue
@@ -603,10 +603,11 @@ async def handler_insert_timesheets():
 
                 time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
                 if task_status == "Completed": time_sheet_doc.submit()
-                excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
+                key_value = f"{new_hash_key}--{time_sheet_doc.name}"
+                request_update_A_colum_to_excel(access_token=ms_access_token, values=[[key_value]], range_num=row_num)
 
     frappe.db.commit()
-    await handle_update_A_colum_to_excel(data=excel_data_update)
+    # await handle_update_A_colum_to_excel(data=excel_data_update)
 
 
 def process_handle_insert_timesheets_from_excel():
