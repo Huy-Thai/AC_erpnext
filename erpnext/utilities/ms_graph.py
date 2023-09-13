@@ -235,10 +235,7 @@ def request_update_A_colum_to_excel(access_token, value, range_num):
 
     if access_token is None: return None
 
-    head = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}"
-    }
+    head = {"Content-Type": "application/json", "Authorization": f"Bearer {access_token}"}
     site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
     file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
     worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
@@ -248,10 +245,12 @@ def request_update_A_colum_to_excel(access_token, value, range_num):
         "formulas" : [[None]],
         "numberFormat" : [[None]]
     }
-
-    r = requests.patch(url, data=json.dumps(payload), headers=head)
-    print(r.status_code)
-    print(r.json())
+    print(head)
+    print(url)
+    print(payload)
+    # r = requests.patch(url, data=json.dumps(payload), headers=head)
+    # print(r.status_code)
+    # print(r.json())
 
 
 async def handle_get_data_raws(num_start, num_end):
