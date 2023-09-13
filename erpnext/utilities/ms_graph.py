@@ -46,9 +46,12 @@ class MSGraph:
         }
 
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
-        self.access_token = resp["access_token"] if resp else None
-        frappe.cache().set_value(MS_ACCESS_TOKEN_KEY, self.access_token, expires_in_sec=60*60)
-        frappe.cache().set_value(MS_ACCESS_TOKEN_EXPIRED_KEY, now_tz_hcm(), expires_in_sec=60*60)
+        expired_at = now_tz_hcm() if resp else None
+        res_access_token = resp["access_token"] if resp else None
+        self.access_token = res_access_token
+
+        frappe.cache().set_value(MS_ACCESS_TOKEN_KEY, res_access_token, expires_in_sec=60*60)
+        frappe.cache().set_value(MS_ACCESS_TOKEN_EXPIRED_KEY, expired_at, expires_in_sec=60*60)
         return
 
 
@@ -275,8 +278,8 @@ def request_update_A_colum_to_excel(access_token, value, range_num):
     }
     r = requests.patch(url, data=json.dumps(payload), headers=head)
     print(r.status_code)
-    print(r.json())
-    print("======================")
+    # print(r.json())
+    # print("======================")
 
 
 async def handle_get_data_raws(num_start, num_end):
