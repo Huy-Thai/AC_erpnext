@@ -229,6 +229,30 @@ def frappe_assign(assigns, doctype, name, description=None, priority=None, notif
         "notify": notify
     })
 
+def request_update_A_colum_to_excel(access_token, values, range_num):
+    import requests
+    import json
+
+    if access_token is None: return None
+
+    head = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+    site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
+    file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
+    worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
+    url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}/range(address='A{range_num}')"
+    payload = {
+        "values" : values,
+        "formulas" : [[None]],
+        "numberFormat" : [[None]]
+    }
+
+    r = requests.patch(url, data=json.dumps(payload), headers=head)
+    print(r.status_code)
+    print(r.json())
+
 
 async def handle_get_data_raws(num_start, num_end):
     promises = []
@@ -259,22 +283,23 @@ async def handle_update_A_colum_to_excel(data):
     promises = []
     async with ClientSession() as session:
         msGraph = MSGraph(session=session)
-        for row_num, hash_key in data.items():
-            range_excel_rows = f"A{row_num}"
-            payload = {
-                "values" : [[hash_key]],
-                "formulas" : [[None]],
-                "numberFormat" : [[None]]
-            }
+        # for row_num, hash_key in data.items():
+        values = data.values()
+        range_excel_rows = f"A210:A240"
+        payload = {
+            "values" : [values],
+            "formulas" : [[None]],
+            "numberFormat" : [[None]]
+        }
 
-            # TODO: implement payload here
-            promise = asyncio.ensure_future(msGraph.patch_worksheet(
-                site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
-                file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
-                worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
-                range_rows=range_excel_rows,
-                payload=payload
-            ))
-            promises.append(promise)
+        # TODO: implement payload here
+        promise = asyncio.ensure_future(msGraph.patch_worksheet(
+            site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
+            file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
+            worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
+            range_rows=range_excel_rows,
+            payload=payload
+        ))
+        promises.append(promise)
 
-        await asyncio.gather(*promises)
+    await asyncio.gather(*promises)

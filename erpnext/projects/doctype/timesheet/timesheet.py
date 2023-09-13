@@ -525,7 +525,7 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700 895
-    data_raws = await handle_get_data_raws(num_start=210, num_end=500)
+    data_raws = await handle_get_data_raws(num_start=210, num_end=240)
     raw_time_sheets = data_raws[0]
     raw_dates = data_raws[1]
     excel_data_update = {}
@@ -606,7 +606,6 @@ async def handler_insert_timesheets():
                 excel_data_update[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
     frappe.db.commit()
-    print(excel_data_update)
     await handle_update_A_colum_to_excel(data=excel_data_update)
 
 
