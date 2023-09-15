@@ -2,13 +2,16 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "naming_series:",
+ "autoname": "format:{project_code}{project_year}_{customer}.{project_amd}",
  "creation": "2013-03-07 11:55:07",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "project_code",
+  "project_year",
+  "project_amd",
   "project_name",
   "status",
   "project_type",
@@ -16,6 +19,9 @@
   "percent_complete_method",
   "percent_complete",
   "column_break_5",
+  "project_cnt",
+  "project_project_development",
+  "project_dev",
   "project_template",
   "expected_start_date",
   "expected_end_date",
@@ -66,6 +72,27 @@
  ],
  "fields": [
   {
+   "fieldname": "project_code",
+   "fieldtype": "Data",
+   "label": "Project Code",
+   "oldfieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project_year",
+   "fieldtype": "Data",
+   "label": "Project Year",
+   "oldfieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project_amd",
+   "fieldtype": "Data",
+   "label": "Project AMD",
+   "oldfieldtype": "Data",
+   "reqd": 1
+  },
+  {
    "fieldname": "project_name",
    "fieldtype": "Data",
    "label": "Project Name",
@@ -82,7 +109,7 @@
    "no_copy": 1,
    "oldfieldname": "status",
    "oldfieldtype": "Select",
-   "options": "Open\nSuspended\nCompleted\nTerminated",
+   "options": "Opened\nSuspended\nCompleted\nTerminated",
    "search_index": 1
   },
   {
@@ -122,6 +149,25 @@
    "fieldname": "column_break_5",
    "fieldtype": "Column Break"
   },
+  {
+    "fieldname": "project_cnt",
+    "fieldtype": "Data",
+    "label": "Project CNT",
+    "oldfieldtype": "Data",
+    "reqd": 1
+   },
+   {
+    "fieldname": "project_development",
+    "fieldtype": "Data",
+    "label": "Project Development",
+    "oldfieldtype": "Data"
+   },
+   {
+    "fieldname": "project_dev",
+    "fieldtype": "Data",
+    "label": "Project DEV",
+    "oldfieldtype": "Data"
+   },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "project_template",
@@ -445,7 +491,8 @@
    "options": "PROJ-.####",
    "print_hide": 1,
    "reqd": 1,
-   "set_only_once": 1
+   "set_only_once": 1,
+   "hidden": 1
   }
  ],
  "icon": "fa fa-puzzle-piece",
