@@ -11,10 +11,34 @@ _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
 TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
-TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
-TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
-TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "Working": "Draft", "Completed": "Completed", "Cancelled": "Cancelled" }
+EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
+EXCEL_TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
+EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "Working": "Draft", "Completed": "Completed", "Cancelled": "Cancelled" }
 TIME_SHEET_STATUS_CANCEL_UPDATE = ["Completed", "Cancelled", "Submitted"]
+
+
+class TaskModel:
+    def __init__(self, num, cell):
+        assert cell["C"] == "", "Value Cell C is required"
+        assert cell["P"] == "", "Value Cell P is required"
+
+        exp_start_date = convert_str_to_date_object(cell["E"])
+        exp_end_date = convert_str_to_date_object(cell["F"])
+        task_status = EXCEL_TASK_STATUS[cell["M"]] if cell["M"] in EXCEL_TASK_STATUS else "Open"
+        task_priority = EXCEL_TASK_PRIORITY[cell["L"]] if cell["L"] in EXCEL_TASK_PRIORITY else "Medium"
+
+        self.custom_no = num
+        self.subject = cell["P"]
+        self.project = cell["C"]
+        self.status = task_status
+        self.priority = task_priority
+        self.progress = cell["M"].replace("%", "")
+        self.exp_start_date = exp_start_date
+        self.exp_end_date = exp_end_date
+        self.employee_name = cell["N"]
+        self.parent_task=None
+        self.completed_on=exp_end_date if task_status == "Completed" else None
+
 
 @cache
 class MSGraph:
@@ -192,12 +216,12 @@ def hash_str_8_dig(raw_str):
     return str(hash_obj)
 
 
-def mapping_cell_with_raw_dates(cell, raw_dates):
+def mapping_cell_with_dates_raw(cell, dates_raw):
     dates = {}
     date_string = ""
     for column, value in cell.items():
-        if column in raw_dates and value != "" and value != None:
-            date = raw_dates[column]
+        if column in dates_raw and value != "" and value != None:
+            date = dates_raw[column]
             dates[date] = value
             date_string = date_string + column + "-" + value + ";"
 
@@ -224,7 +248,7 @@ def frappe_assign(assigns, doctype, name, description=None, priority=None, notif
         "notify": notify
     })
 
-def request_update_A_colum_to_excel(access_token, value, range_num):
+def request_update_A_column_to_excel(access_token, value, range_num):
     import requests
     import json
 
@@ -268,26 +292,25 @@ async def handle_get_data_raws(num_start, num_end):
         return row_object, date_object, msGraph.access_token
 
 
-async def handle_update_A_colum_to_excel(data):
-    promises = []
-    async with ClientSession() as session:
-        msGraph = MSGraph(session=session)
-        for row_num, hash_key in data.items():
-            range_excel_rows = f"A{row_num}"
-            payload = {
-                "values" : [[hash_key]],
-                "formulas" : [[None]],
-                "numberFormat" : [[None]]
-            }
+# async def handle_update_A_colum_to_excel(data):
+#     promises = []
+#     async with ClientSession() as session:
+#         msGraph = MSGraph(session=session)
+#         for row_num, hash_key in data.items():
+#             range_excel_rows = f"A{row_num}"
+#             payload = {
+#                 "values" : [[hash_key]],
+#                 "formulas" : [[None]],
+#                 "numberFormat" : [[None]]
+#             }
 
-            # TODO: implement payload here
-            promise = asyncio.ensure_future(msGraph.patch_worksheet(
-                site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
-                file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
-                worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
-                range_rows=range_excel_rows,
-                payload=payload
-            ))
-            promises.append(promise)
+#             promise = asyncio.ensure_future(msGraph.patch_worksheet(
+#                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
+#                 file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
+#                 worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
+#                 range_rows=range_excel_rows,
+#                 payload=payload
+#             ))
+#             promises.append(promise)
 
-        await asyncio.gather(*promises)
+#         await asyncio.gather(*promises)

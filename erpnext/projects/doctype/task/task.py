@@ -12,6 +12,7 @@ from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getda
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
+from erpnext.utilities.ms_graph import TaskModel
 from erpnext.utilities.ms_graph import frappe_assign
 
 class CircularReferenceError(frappe.ValidationError):
@@ -387,35 +388,25 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 
 
-def process_insert_tasks(
-        custom_no,
-        subject,
-        project,
-        status,
-        priority,
-        progress,
-        exp_start_date,
-        employee_name,
-        parent_task=None,
-        exp_end_date=None,
-        completed_on=None):
+def process_handle_get_task(payload: TaskModel):
+    pre_task_doc = frappe.db.get_value("Task", {"subject": payload.subject, "project": payload.project}, ["name"], as_dict=1)
+    task_doc = frappe.new_doc("Task") if pre_task_doc is None else pre_task_doc
 
-    task_doc = frappe.new_doc("Task")
-    task_doc.custom_no = custom_no
-    task_doc.subject = subject
-    task_doc.project = project
-    task_doc.status = status
-    task_doc.priority = priority
-    task_doc.parent_task = parent_task
-    task_doc.exp_start_date = exp_start_date
-    task_doc.progress = progress
-    if exp_end_date != None: task_doc.exp_end_date = exp_end_date
-    if parent_task != None: task_doc.parent_task = parent_task
-    if completed_on != None: task_doc.completed_on = completed_on
-    task_doc.insert()
+    task_doc.custom_no = payload.custom_no
+    task_doc.subject = payload.subject
+    task_doc.project = payload.project
+    task_doc.status = payload.status
+    task_doc.priority = payload.priority
+    task_doc.parent_task = payload.parent_task
+    task_doc.exp_start_date = payload.exp_start_date
+    task_doc.progress = payload.progress
+    task_doc.exp_end_date = payload.exp_end_date
+    task_doc.parent_task = payload.parent_task
+    if payload.completed_on != None: task_doc.completed_on = payload.completed_on
+    task_doc.insert() if pre_task_doc is None else task_doc.save()
 
-    if employee_name != "":
-        user_id = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["user_id"])
+    if payload.employee_name != "":
+        user_id = frappe.db.get_value("Employee", {"employee_name": payload.employee_name}, ["user_id"])
         if user_id is not None: frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
     
     return task_doc
