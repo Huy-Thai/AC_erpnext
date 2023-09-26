@@ -1,12 +1,13 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "TASK-.YYYY.-.#####",
+ "autoname": "hash",
  "creation": "2013-01-29 19:25:50",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "task_number",
   "subject",
   "project",
   "issue",
@@ -24,6 +25,7 @@
   "sb_timeline",
   "exp_start_date",
   "expected_time",
+  "new_end_date",
   "start",
   "column_break_11",
   "exp_end_date",
@@ -55,6 +57,15 @@
   "old_parent"
  ],
  "fields": [
+    {
+    "fieldname": "task_number",
+    "fieldtype": "Data",
+    "in_global_search": 1,
+    "in_standard_filter": 1,
+    "label": "No.",
+    "reqd": 1,
+    "search_index": 1
+    },
   {
    "fieldname": "subject",
    "fieldtype": "Data",
@@ -115,7 +126,7 @@
    "no_copy": 1,
    "oldfieldname": "status",
    "oldfieldtype": "Select",
-   "options": "Open\nWorking\nPending Review\nOverdue\nTemplate\nCompleted\nCancelled"
+   "options": "Open\nIn Progress\nPending\nDone\nReview\nCancel\nOverdue\nTemplate"
   },
   {
    "fieldname": "priority",
@@ -164,6 +175,13 @@
    "oldfieldname": "exp_total_hrs",
    "oldfieldtype": "Data"
   },
+  {
+    "bold": 1,
+    "fieldname": "new_end_date",
+    "fieldtype": "Date",
+    "label": "New End Date",
+    "search_index": 1
+   },
   {
    "fetch_from": "type.weight",
    "fieldname": "task_weight",

@@ -520,7 +520,7 @@ def get_projects_for_collect_progress(frequency, fields):
 	return frappe.get_all(
 		"Project",
 		fields=fields,
-		filters={"collect_progress": 1, "frequency": frequency, "status": "Open"},
+		filters={"collect_progress": 1, "frequency": frequency, "status": "Opened"},
 	)
 
 

@@ -525,7 +525,7 @@ def get_list_context(context=None):
 
 async def handler_insert_timesheets():
     # TEAM 2: 85 -> 2700
-    data_raws = await handle_get_data_raws(num_start=210, num_end=895)
+    data_raws = await handle_get_data_raws(num_start=210, num_end=280)
     time_sheets_raw = data_raws[0]
     dates_raw = data_raws[1]
     ms_access_token = data_raws[2]
@@ -545,10 +545,11 @@ async def handler_insert_timesheets():
             task = cell["P"]
             activity_code = cell["O"]
             employee_name = cell["N"]
+            progress = cell["M"].replace("%", "")
             task_status = EXCEL_TASK_STATUS[cell["M"]] if cell["M"] in EXCEL_TASK_STATUS else "Open"
 
             if employee_name == "": continue
-            new_key = f"{project_code};{employee_name};{activity_code};{task};{date_string}"
+            new_key = f"{project_code};{employee_name};{progress};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
 
@@ -578,7 +579,7 @@ async def handler_insert_timesheets():
                                 "hours": flt(hrs),
                                 "project": project_code,
                                 "task": task_doc.name,
-                                "completed": task_status == "Completed",
+                                "completed": task_status == "Done",
                             },
                         )
 

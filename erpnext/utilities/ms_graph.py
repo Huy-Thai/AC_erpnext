@@ -12,8 +12,8 @@ _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
 TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
 EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
-EXCEL_TASK_STATUS = { "": "Open", "10%": "Working", "20%": "Working", "30%": "Working", "50%": "Working", "70%": "Working", "80%": "Working", "100%": "Completed" }
-EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "Working": "Draft", "Completed": "Completed", "Cancelled": "Cancelled" }
+EXCEL_TASK_STATUS = { "": "Open", "10%": "In Progress", "20%": "In Progress", "30%": "In Progress", "50%": "In Progress", "70%": "In Progress", "80%": "In Progress", "100%": "Done" }
+EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Done": "Completed", "Cancel": "Cancelled" }
 TIME_SHEET_STATUS_CANCEL_UPDATE = ["Completed", "Cancelled", "Submitted"]
 
 
