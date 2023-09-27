@@ -20,8 +20,6 @@
   "priority",
   "task_weight",
   "parent_task",
-  "assign_section",
-  "assigns",
   "completed_by",
   "completed_on",
   "sb_timeline",
@@ -157,19 +155,6 @@
    "label": "Parent Task",
    "options": "Task",
    "search_index": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "assign_section",
-   "fieldtype": "Section Break",
-   "label": "Users"
-  },
-  {
-   "description": "Users assigned to the task",
-   "fieldname": "assigns",
-   "fieldtype": "Table",
-   "label": "Users",
-   "options": "Task User"
   },
   {
    "collapsible": 1,
