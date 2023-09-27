@@ -19,8 +19,8 @@ TIME_SHEET_STATUS_CANCEL_UPDATE = ["Completed", "Cancelled", "Submitted"]
 
 class TaskModel:
     def __init__(self, num, cell):
-        assert cell["C"] == "", "Value Cell C is required"
-        assert cell["P"] == "", "Value Cell P is required"
+        assert cell["C"] != "", "Value Cell C is required"
+        assert cell["P"] != "", "Value Cell P is required"
 
         exp_start_date = convert_str_to_date_object(cell["E"])
         exp_end_date = convert_str_to_date_object(cell["F"])
