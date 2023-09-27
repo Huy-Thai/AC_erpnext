@@ -392,12 +392,12 @@ def process_handle_get_task(payload: TaskModel):
     from frappe.desk.form.assign_to import get as get_assign
 	
     assigns = None
-    pre_task_doc = frappe.db.get_value("Task", {"subject": payload.subject, "project": payload.project}, ["name"], as_dict=1)
+    pre_task_doc = frappe.get_doc(doctype = "Task", subject = payload.subject, project = payload.project)
     print("pre_task_doc", pre_task_doc)
     task_doc = frappe.new_doc("Task")
     if pre_task_doc is not None:
         task_doc = pre_task_doc
-        assigns = get_assign(dict(doctype=pre_task_doc.doctype, name=pre_task_doc.name))
+        assigns = get_assign({"doctype": pre_task_doc.doctype, "name": pre_task_doc.name})
         print("assigns", assigns)
 
     task_doc.task_number = payload.task_number
@@ -413,7 +413,6 @@ def process_handle_get_task(payload: TaskModel):
     if payload.completed_on != None: task_doc.completed_on = payload.completed_on
 
     if pre_task_doc is not None:
-        print("task_doc", task_doc)
         task_doc.save()
     else:
         task_doc.insert()
