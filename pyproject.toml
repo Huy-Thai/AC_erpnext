@@ -24,6 +24,7 @@ dependencies = [
 
     # Not used directly - required by PyQRCode for PNG generation
     "pypng~=0.20220715.0",
+    "aiohttp",
 ]
 
 [build-system]

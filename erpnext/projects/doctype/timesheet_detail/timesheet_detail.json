@@ -41,12 +41,13 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Activity Type",
-   "options": "Activity Type"
+   "options": "Activity Type",
+   "reqd": 1
   },
   {
    "columns": 2,
    "fieldname": "from_time",
-   "fieldtype": "Datetime",
+   "fieldtype": "Date",
    "in_list_view": 1,
    "label": "From Time"
   },
@@ -68,7 +69,7 @@
   },
   {
    "fieldname": "to_time",
-   "fieldtype": "Datetime",
+   "fieldtype": "Date",
    "label": "To Time"
   },
   {
@@ -99,7 +100,8 @@
    "fieldtype": "Link",
    "label": "Task",
    "options": "Task",
-   "remember_last_selected_value": 1
+   "remember_last_selected_value": 1,
+   "reqd": 1
   },
   {
    "fieldname": "section_break_6",

@@ -1,8 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-
 import json
+import asyncio
+import copy
 
 import frappe
 from frappe import _
@@ -11,6 +12,11 @@ from frappe.utils import add_to_date, flt, get_datetime, getdate, time_diff_in_h
 
 from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
+from erpnext.projects.doctype.task.task import process_handle_get_task
+from erpnext.utilities.ms_graph import (
+    EXCEL_TASK_STATUS, EXCEL_TIME_SHEET_STATUS, TIME_SHEET_STATUS_CANCEL_UPDATE, TaskModel,
+	handle_get_data_raws, request_update_A_column_to_excel,
+	hash_str_8_dig, split_str_get_key, mapping_cell_with_dates_raw )
 
 
 class OverlapError(frappe.ValidationError):
@@ -25,7 +31,7 @@ class Timesheet(Document):
 	def validate(self):
 		self.set_status()
 		self.validate_dates()
-		self.calculate_hours()
+		# self.calculate_hours()
 		self.validate_time_logs()
 		self.update_cost()
 		self.calculate_total_amounts()
@@ -135,7 +141,7 @@ class Timesheet(Document):
 	def validate_time_logs(self):
 		for data in self.get("time_logs"):
 			self.set_to_time(data)
-			self.validate_overlap(data)
+			# self.validate_overlap(data)
 			self.set_project(data)
 			self.validate_project(data)
 
@@ -515,3 +521,73 @@ def get_list_context(context=None):
 		"get_list": get_timesheets_list,
 		"row_template": "templates/includes/timesheet/timesheet_row.html",
 	}
+    
+
+async def handler_insert_timesheets():
+    # TEAM 2: 85 -> 2700
+    data_raws = await handle_get_data_raws(num_start=210, num_end=280)
+    time_sheets_raw = data_raws[0]
+    dates_raw = data_raws[1]
+    ms_access_token = data_raws[2]
+
+    for sheet in time_sheets_raw:
+        if sheet is None: continue
+
+        for row_num in sheet:
+            cell = sheet[row_num]
+            if cell is None or cell["B"] == "Pa" or cell["P"] == "": continue
+            dates, date_string = mapping_cell_with_dates_raw(cell, dates_raw)
+
+            project_code = cell["C"]
+            is_project_exist = frappe.db.exists("Project", project_code)
+            if not is_project_exist: continue
+
+            task = cell["P"]
+            activity_code = cell["O"]
+            employee_name = cell["N"]
+            progress = cell["M"].replace("%", "")
+            task_status = EXCEL_TASK_STATUS[cell["M"]] if cell["M"] in EXCEL_TASK_STATUS else "Open"
+
+            if employee_name == "": continue
+            new_key = f"{project_code};{employee_name};{progress};{activity_code};{task};{date_string}"
+            new_hash_key = hash_str_8_dig(new_key)
+            prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
+
+            is_hash_key_not_changed = prev_hash_key == new_hash_key
+            if is_hash_key_not_changed: continue
+            task_doc = process_handle_get_task(payload=TaskModel(row_num, cell))
+
+            is_new_time_sheet = prev_hash_key == ""
+            emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
+            time_sheet_doc = frappe.new_doc("Timesheet") if is_new_time_sheet else frappe.get_doc("Timesheet", time_sheet_id)
+
+            if time_sheet_doc.status not in TIME_SHEET_STATUS_CANCEL_UPDATE and emp_name is not None:
+                time_sheet_doc.naming_series = "TS-.YYYY.-"
+                time_sheet_doc.parent_project = project_code
+                time_sheet_doc.company = "ACONS"
+                time_sheet_doc.employee = emp_name
+                time_sheet_doc.status = EXCEL_TIME_SHEET_STATUS[task_status]
+                time_sheet_doc.time_logs = []
+
+                if len(dates) > 0 and activity_code != "":
+                    for date, hrs in dates.items():
+                        time_sheet_doc.append(
+                            "time_logs",
+                            {
+                                "activity_type": activity_code,
+                                "from_time": date,
+                                "hours": flt(hrs),
+                                "project": project_code,
+                                "task": task_doc.name,
+                                "completed": task_status == "Done",
+                            },
+                        )
+
+                time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
+                if task_status == "Completed": time_sheet_doc.submit()
+                A_value = f"{new_hash_key}--{time_sheet_doc.name}"
+                request_update_A_column_to_excel(access_token=ms_access_token, value=A_value, range_num=row_num)
+        frappe.db.commit()
+
+def process_handle_insert_timesheets_from_excel():
+	asyncio.run(handler_insert_timesheets())
