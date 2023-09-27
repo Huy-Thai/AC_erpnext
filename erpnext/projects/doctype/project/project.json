@@ -20,7 +20,7 @@
   "percent_complete",
   "column_break_5",
   "project_cnt",
-  "project_project_development",
+  "project_development",
   "project_dev",
   "project_template",
   "expected_start_date",
@@ -81,14 +81,14 @@
   {
    "fieldname": "project_year",
    "fieldtype": "Data",
-   "label": "Project Year",
+   "label": "Year",
    "oldfieldtype": "Data",
    "reqd": 1
   },
   {
    "fieldname": "project_amd",
    "fieldtype": "Data",
-   "label": "Project AMD",
+   "label": "AMD",
    "oldfieldtype": "Data",
    "reqd": 1
   },
@@ -152,7 +152,7 @@
   {
     "fieldname": "project_cnt",
     "fieldtype": "Data",
-    "label": "Project CNT",
+    "label": "CNT",
     "oldfieldtype": "Data",
     "reqd": 1
    },
@@ -165,7 +165,7 @@
    {
     "fieldname": "project_dev",
     "fieldtype": "Data",
-    "label": "Project DEV",
+    "label": "DEV",
     "oldfieldtype": "Data"
    },
   {
@@ -224,7 +224,8 @@
    "oldfieldtype": "Link",
    "options": "Customer",
    "print_hide": 1,
-   "search_index": 1
+   "search_index": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_14",
