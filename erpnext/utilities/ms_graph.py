@@ -27,7 +27,7 @@ class TaskModel:
         task_status = EXCEL_TASK_STATUS[cell["M"]] if cell["M"] in EXCEL_TASK_STATUS else "Open"
         task_priority = EXCEL_TASK_PRIORITY[cell["L"]] if cell["L"] in EXCEL_TASK_PRIORITY else "Medium"
 
-        self.custom_no = num
+        self.task_number = num
         self.subject = cell["P"]
         self.project = cell["C"]
         self.status = task_status
