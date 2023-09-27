@@ -403,7 +403,11 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.exp_end_date = payload.exp_end_date
     task_doc.parent_task = payload.parent_task
     if payload.completed_on != None: task_doc.completed_on = payload.completed_on
-    task_doc.insert() if pre_task_doc is None else task_doc.save()
+
+    if pre_task_doc is None:
+        task_doc.insert() 
+    else:
+        task_doc.save()
 
     if payload.employee_name != "":
         user_id = frappe.db.get_value("Employee", {"employee_name": payload.employee_name}, ["user_id"])
