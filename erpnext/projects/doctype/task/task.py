@@ -393,7 +393,7 @@ def process_handle_get_task(payload: TaskModel):
 	
     assigns = None
     pre_task_doc = frappe.db.get_value("Task", {"subject": payload.subject, "project": payload.project}, ["name"], as_dict=1)
-	
+    print("pre_task_doc", pre_task_doc)
     task_doc = frappe.new_doc("Task")
     if pre_task_doc is not None:
         task_doc = pre_task_doc
