@@ -586,7 +586,7 @@ async def handler_insert_timesheets():
                         )
 
                 time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
-                if task_status == "Completed": time_sheet_doc.submit()
+                if task_status == "Done": time_sheet_doc.submit()
                 A_value = f"{new_hash_key}--{time_sheet_doc.name}"
                 request_update_A_column_to_excel(access_token=ms_access_token, value=A_value, range_num=row_num)
         frappe.db.commit()
