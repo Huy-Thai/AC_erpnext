@@ -47,6 +47,10 @@ content-type: application/json
 
 ###
 
+GET https://acerp-dev.pandion.vn/api/resource/Task?fields=["name", "assign_to"] HTTP/1.1
+
+###
+
 GET https://acerp-dev.pandion.vn/api/resource/Timesheet?fields=["name", "naming_series", "parent_project", "employee", "employee_name", "status", "start_date", "total_hours", "status"] HTTP/1.1
 
 ###
