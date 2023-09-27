@@ -389,16 +389,10 @@ def on_doctype_update():
 
 
 def process_handle_get_task(payload: TaskModel):
-    from frappe.desk.form.assign_to import get as get_assign
-	
-    assigns = None
     pre_task_doc = frappe.get_doc(doctype = "Task", subject = payload.subject, project = payload.project)
-    print("pre_task_doc", pre_task_doc)
     task_doc = frappe.new_doc("Task")
     if pre_task_doc is not None:
         task_doc = pre_task_doc
-        assigns = get_assign({"doctype": pre_task_doc.doctype, "name": pre_task_doc.name})
-        print("assigns", assigns)
 
     task_doc.task_number = payload.task_number
     task_doc.subject = payload.subject
