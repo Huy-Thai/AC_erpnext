@@ -400,8 +400,8 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.status = payload.status
     task_doc.priority = payload.priority
     task_doc.parent_task = payload.parent_task
-    # task_doc.exp_start_date = payload.exp_start_date
     task_doc.progress = payload.progress
+    # task_doc.exp_start_date = payload.exp_start_date
     # task_doc.exp_end_date = payload.exp_end_date
     if payload.completed_on != None: task_doc.completed_on = payload.completed_on
 
