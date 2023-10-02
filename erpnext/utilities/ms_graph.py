@@ -124,7 +124,7 @@ class MSGraph:
             # TODO: build payload for get all file of teams
             response = await self.get_worksheet_detail(
                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
-                file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
+                file_id="01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY",
                 worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
                 range_rows=range_rows,
             )
@@ -255,7 +255,7 @@ def request_update_A_column_to_excel(access_token, value, range_num):
     if access_token is None: return None
 
     head = {"Content-Type": "application/json", "Authorization": f"Bearer {access_token}"}
-    url = "https://graph.microsoft.com/v1.0/sites/aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d/drive/items/01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ/workbook/worksheets/{B85C4123-37D8-4048-BFF6-4CD980E78699}"
+    url = "https://graph.microsoft.com/v1.0/sites/aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d/drive/items/01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY/workbook/worksheets/{B85C4123-37D8-4048-BFF6-4CD980E78699}"
     url += f"/range(address='A{range_num}')"
     payload = {
         "values" : [[value]],

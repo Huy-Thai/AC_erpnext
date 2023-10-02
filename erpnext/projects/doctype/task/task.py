@@ -401,7 +401,7 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.priority = payload.priority
     task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
-    # task_doc.exp_start_date = payload.exp_start_date
+    task_doc.exp_start_date = payload.exp_start_date
     # task_doc.exp_end_date = payload.exp_end_date
     if payload.completed_on != None: task_doc.completed_on = payload.completed_on
 
@@ -411,7 +411,7 @@ def process_handle_get_task(payload: TaskModel):
         task_doc.insert()
 
     if payload.employee_name != "":
-        user_id = frappe.db.get_value("Employee", {"employee_name": payload.employee_name}, ["user_id"])
-        if user_id is not None: frappe_assign(assigns=[user_id], doctype=task_doc.doctype, name=task_doc.name)
+        emp = frappe.db.get_doc(doctype = "Employee", employee_name = payload.employee_name)
+        if emp.user_id is not None: frappe_assign(assigns=[emp.user_id], doctype=task_doc.doctype, name=task_doc.name)
     
     return task_doc
