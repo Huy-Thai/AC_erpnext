@@ -559,9 +559,9 @@ async def handler_insert_timesheets():
 
             is_new_time_sheet = True
             emp_name = frappe.get_doc(doctype = "Employee", employee_name = employee_name)
-            time_sheet_doc = frappe.get_doc("Timesheet", time_sheet_id)
+            time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id)
 
-            if time_sheet_doc.name is not None:
+            if time_sheet_doc is not None:
                 is_exists_employee_with_timesheet = frappe.db.exists("Timesheet", {"name": time_sheet_doc.name, "employee": emp_name.name})
                 if is_exists_employee_with_timesheet:
                     is_new_time_sheet = False
