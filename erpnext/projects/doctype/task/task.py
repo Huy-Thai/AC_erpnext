@@ -11,9 +11,10 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getdate, today
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
+from frappe.desk.form.assign_to import add as add_assignment
+from frappe.desk.form.assign_to import get as get_assignment
 
 from erpnext.utilities.ms_graph import TaskModel
-from frappe.desk.form.assign_to import add as add_assignment, get as get_assignment
 
 
 class CircularReferenceError(frappe.ValidationError):
