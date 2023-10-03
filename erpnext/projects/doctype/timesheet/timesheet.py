@@ -570,7 +570,7 @@ async def handler_insert_timesheets():
             else:
                 time_sheet_doc = frappe.new_doc("Timesheet")
 
-            if time_sheet_doc.status not in TIME_SHEET_STATUS_CANCEL_UPDATE and emp_name.name is not None:
+            if emp_name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
                 time_sheet_doc.parent_project = project_code
                 time_sheet_doc.company = "ACONS"

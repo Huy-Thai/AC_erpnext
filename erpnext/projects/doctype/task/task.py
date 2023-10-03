@@ -414,7 +414,6 @@ def process_handle_get_task(payload: TaskModel):
 
     if payload.employee_name != "":
         owners = get_assignment({"doctype": task_doc.doctype, "name": task_doc.name}) or []
-        print(owners)
         emp = frappe.get_doc(doctype = "Employee", employee_name = payload.employee_name)
         if emp.user_id is not None:    
             owners.append(emp.user_id)
