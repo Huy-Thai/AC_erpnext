@@ -13,7 +13,8 @@ from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
 from erpnext.utilities.ms_graph import TaskModel
-from erpnext.utilities.ms_graph import frappe_assign
+from frappe.desk.form.assign_to import add as add_assignment, get as get_assignment
+
 
 class CircularReferenceError(frappe.ValidationError):
 	pass
@@ -37,7 +38,7 @@ class Task(NestedSet):
 		self.validate_completed_on()
 
 	def validate_dates(self):
-		self.validate_from_to_dates("exp_start_date", "exp_end_date")
+		# self.validate_from_to_dates("exp_start_date", "exp_end_date")
 		self.validate_from_to_dates("act_start_date", "act_end_date")
 		self.validate_parent_expected_end_date()
 		self.validate_parent_project_dates()
@@ -402,7 +403,7 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
     task_doc.exp_start_date = payload.exp_start_date
-    # task_doc.exp_end_date = payload.exp_end_date
+    task_doc.exp_end_date = payload.exp_end_date
     if payload.completed_on != None: task_doc.completed_on = payload.completed_on
 
     if pre_task_doc is not None:
@@ -411,7 +412,16 @@ def process_handle_get_task(payload: TaskModel):
         task_doc.insert()
 
     if payload.employee_name != "":
+        owners = get_assignment({"doctype": task_doc.doctype, "name": task_doc.name}) | []
+        print(owners)
         emp = frappe.get_doc(doctype = "Employee", employee_name = payload.employee_name)
-        if emp.user_id is not None: frappe_assign(assigns=[emp.user_id], doctype=task_doc.doctype, name=task_doc.name)
+        if emp.user_id is not None:    
+            owners.append(emp.user_id)
+            add_assignment({
+                "assign_to": owners,
+                "doctype": task_doc.doctype,
+                "name": task_doc.name,
+                "notify": 0
+            })
     
     return task_doc

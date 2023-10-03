@@ -554,19 +554,28 @@ async def handler_insert_timesheets():
             new_hash_key = hash_str_8_dig(new_key)
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
 
-            is_hash_key_not_changed = prev_hash_key == new_hash_key
-            if is_hash_key_not_changed: continue
+            if prev_hash_key == new_hash_key: continue
             task_doc = process_handle_get_task(payload=TaskModel(row_num, cell))
 
-            is_new_time_sheet = prev_hash_key == ""
-            emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-            time_sheet_doc = frappe.new_doc("Timesheet") if is_new_time_sheet else frappe.get_doc("Timesheet", time_sheet_id)
+            is_new_time_sheet = True
+            emp_name = frappe.get_doc(doctype = "Employee", employee_name = employee_name)
+            time_sheet_doc = frappe.get_doc("Timesheet", time_sheet_id)
 
-            if time_sheet_doc.status not in TIME_SHEET_STATUS_CANCEL_UPDATE and emp_name is not None:
+            if time_sheet_doc.name is not None:
+                is_exists_employee_with_timesheet = frappe.db.exists("Timesheet", {"name": time_sheet_doc.name, "employee": emp_name.name})
+                if is_exists_employee_with_timesheet:
+                    is_new_time_sheet = False
+                else:
+                    time_sheet_doc = frappe.new_doc("Timesheet")
+            else:
+                time_sheet_doc = frappe.new_doc("Timesheet")
+
+
+            if time_sheet_doc.status not in TIME_SHEET_STATUS_CANCEL_UPDATE and emp_name.name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
                 time_sheet_doc.parent_project = project_code
                 time_sheet_doc.company = "ACONS"
-                time_sheet_doc.employee = emp_name
+                time_sheet_doc.employee = emp_name.name
                 time_sheet_doc.status = EXCEL_TIME_SHEET_STATUS[task_status]
                 time_sheet_doc.time_logs = []
 

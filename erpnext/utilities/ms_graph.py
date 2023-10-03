@@ -2,7 +2,6 @@ import asyncio
 import hashlib
 
 from datetime import datetime
-from frappe.desk.form.assign_to import add as add_assignment
 from aiohttp import ClientSession
 from functools import cache
 
@@ -237,16 +236,6 @@ def split_str_get_key(input_data, char_split):
 
     return index_0, index_1
 
-
-def frappe_assign(assigns, doctype, name, description=None, priority=None, notify=0):
-    add_assignment({
-        "assign_to": assigns,
-        "doctype": doctype,
-        "name": name,
-        "description": description,
-        "priority": priority,
-        "notify": notify
-    })
 
 def request_update_A_column_to_excel(access_token, value, range_num):
     import requests
