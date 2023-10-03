@@ -11,8 +11,7 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getdate, today
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
-from frappe.desk.form.assign_to import add as add_assignment
-from frappe.desk.form.assign_to import get as get_assignment
+from frappe.desk.form.assign_to import add as add_assignment, get as get_assignment
 
 from erpnext.utilities.ms_graph import TaskModel
 
@@ -414,9 +413,9 @@ def process_handle_get_task(payload: TaskModel):
 
     if payload.employee_name != "":
         owners = get_assignment({"doctype": task_doc.doctype, "name": task_doc.name}) or []
-        emp = frappe.get_doc(doctype = "Employee", employee_name = payload.employee_name)
-        if emp.user_id is not None:    
-            owners.append(emp.user_id)
+        user_id = frappe.db.get_value("Employee", {"employee_name": payload.employee_name}, ["user_id"])
+        if user_id is not None:    
+            owners.append(user_id)
             add_assignment({
                 "assign_to": owners,
                 "doctype": task_doc.doctype,

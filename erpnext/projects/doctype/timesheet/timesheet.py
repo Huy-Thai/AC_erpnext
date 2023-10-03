@@ -558,7 +558,7 @@ async def handler_insert_timesheets():
             task_doc = process_handle_get_task(payload=TaskModel(row_num, cell))
 
             is_new_time_sheet = True
-            emp_name = frappe.db.get_value('Employee', {'employee_name': 'employee_name'}, ['name'])
+            emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id)
 
             if time_sheet_doc is not None:
@@ -570,7 +570,6 @@ async def handler_insert_timesheets():
             else:
                 time_sheet_doc = frappe.new_doc("Timesheet")
 
-            print(emp_name)
             if emp_name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
                 time_sheet_doc.parent_project = project_code
