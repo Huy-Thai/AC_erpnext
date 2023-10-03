@@ -570,6 +570,7 @@ async def handler_insert_timesheets():
             else:
                 time_sheet_doc = frappe.new_doc("Timesheet")
 
+            print(emp_name)
             if emp_name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
                 time_sheet_doc.parent_project = project_code
