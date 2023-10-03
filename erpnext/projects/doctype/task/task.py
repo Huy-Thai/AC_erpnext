@@ -411,7 +411,7 @@ def process_handle_get_task(payload: TaskModel):
         task_doc.insert()
 
     if payload.employee_name != "":
-        emp = frappe.db.get_doc(doctype = "Employee", employee_name = payload.employee_name)
+        emp = frappe.get_doc(doctype = "Employee", employee_name = payload.employee_name)
         if emp.user_id is not None: frappe_assign(assigns=[emp.user_id], doctype=task_doc.doctype, name=task_doc.name)
     
     return task_doc
