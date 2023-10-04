@@ -422,11 +422,11 @@ scheduler_events = {
 		# "45 0 * * *": [
 		# 	"erpnext.stock.reorder_item.reorder_item",
 		# ],
-		"0 6 * * MON-SAT": [
-			"erpnext.projects.doctype.timesheet.timesheet.process_handle_insert_timesheets_from_excel",
+		"0 11 * * MON-SAT": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_insert_timesheets_from_excel_at_afternoon",
 		],
 		"55 23 * * MON-SAT": [
-			"erpnext.projects.doctype.timesheet.timesheet.process_handle_insert_timesheets_from_excel",
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_insert_timesheets_from_excel_at_midnight",
 		]
 	},
 	# "hourly": [

@@ -598,5 +598,9 @@ async def handler_insert_timesheets():
                 request_update_A_column_to_excel(access_token=ms_access_token, value=A_value, range_num=row_num)
         frappe.db.commit()
 
-def process_handle_insert_timesheets_from_excel():
+def process_handle_insert_timesheets_from_excel_at_afternoon():
+	asyncio.run(handler_insert_timesheets())
+
+
+def process_handle_insert_timesheets_from_excel_at_midnight():
 	asyncio.run(handler_insert_timesheets())
