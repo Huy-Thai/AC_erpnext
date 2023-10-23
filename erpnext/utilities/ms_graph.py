@@ -21,6 +21,7 @@ class TaskModel:
         assert cell["C"] != "", "Value Cell C is required"
         assert cell["O"] != "", "Value Cell O is required"
 
+        expected_time = float(cell["I"]) if cell["I"] != '' else 0.0
         task_status = EXCEL_TASK_STATUS[cell["P"]]
         task_priority = EXCEL_TASK_PRIORITY[cell["K"]]
         parent_task = EXCEL_PARENT_TASK[cell["H"]]
@@ -31,7 +32,7 @@ class TaskModel:
         self.status = task_status
         self.priority = task_priority
         self.progress = cell["L"].replace("%", "")
-        self.expected_time = float(cell["I"])
+        self.expected_time = expected_time
         self.employee_name = cell["M"]
         self.parent_task = parent_task
 
