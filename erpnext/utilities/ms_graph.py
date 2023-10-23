@@ -9,9 +9,9 @@ _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
-TASK_REQUIRED_COLUMN = ["B","C","E","F","L","M","N","O","P"]
-EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "7_Transfer": "Medium" }
-EXCEL_TASK_STATUS = { "": "Open", "10%": "In Progress", "20%": "In Progress", "30%": "In Progress", "50%": "In Progress", "70%": "In Progress", "80%": "In Progress", "100%": "Done" }
+EXCEL_PARENT_TASK = { "": "Medium", "0_Pre CO": "acfd714ce2", "1_CO": "139b832bc2", "2_BD": "2180360833", "3_DD": "dd6e2e3812", "4_TD": "2f9d551101", "5_CD": "8023301194", "6_AU": "fb98016b55", "7_Other": "55e7df4bed" }
+EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "4_Low": "Low" }
+EXCEL_TASK_STATUS = { "": "Open", "1_Open": "Open", "2_In progress": "In Progress", "3_Pending": "Pending", "4_Cancel": "Cancel", "5_Done": "Done", "6_Review": "Review" }
 EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Done": "Completed", "Cancel": "Cancelled" }
 TIME_SHEET_STATUS_CANCEL_UPDATE = ["Completed", "Cancelled", "Submitted"]
 
@@ -19,24 +19,21 @@ TIME_SHEET_STATUS_CANCEL_UPDATE = ["Completed", "Cancelled", "Submitted"]
 class TaskModel:
     def __init__(self, num, cell):
         assert cell["C"] != "", "Value Cell C is required"
-        assert cell["P"] != "", "Value Cell P is required"
+        assert cell["O"] != "", "Value Cell O is required"
 
-        exp_start_date = convert_str_to_date_object(cell["E"])
-        exp_end_date = convert_str_to_date_object(cell["F"])
-        task_status = EXCEL_TASK_STATUS[cell["M"]] if cell["M"] in EXCEL_TASK_STATUS else "Open"
-        task_priority = EXCEL_TASK_PRIORITY[cell["L"]] if cell["L"] in EXCEL_TASK_PRIORITY else "Medium"
+        task_status = EXCEL_TASK_STATUS[cell["P"]]
+        task_priority = EXCEL_TASK_PRIORITY[cell["K"]]
+        parent_task = EXCEL_PARENT_TASK[cell["H"]]
 
         self.task_number = num
-        self.subject = cell["P"]
+        self.subject = cell["O"]
         self.project = cell["C"]
         self.status = task_status
         self.priority = task_priority
-        self.progress = cell["M"].replace("%", "")
-        self.exp_start_date = exp_start_date
-        self.exp_end_date = exp_end_date
-        self.employee_name = cell["N"]
-        self.parent_task=None
-        self.completed_on=exp_end_date if task_status == "Completed" else None
+        self.progress = cell["L"].replace("%", "")
+        self.expected_time = float(cell["I"])
+        self.employee_name = cell["M"]
+        self.parent_task = parent_task
 
 
 @cache
@@ -124,7 +121,7 @@ class MSGraph:
             response = await self.get_worksheet_detail(
                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
                 file_id="01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY",
-                worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
+                worksheet_id="{930F8F2B-9F98-4813-A052-DBF499042B0C}",
                 range_rows=range_rows,
             )
 
@@ -244,7 +241,7 @@ def request_update_A_column_to_excel(access_token, value, range_num):
     if access_token is None: return None
 
     head = {"Content-Type": "application/json", "Authorization": f"Bearer {access_token}"}
-    url = "https://graph.microsoft.com/v1.0/sites/aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d/drive/items/01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY/workbook/worksheets/{B85C4123-37D8-4048-BFF6-4CD980E78699}"
+    url = "https://graph.microsoft.com/v1.0/sites/aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d/drive/items/01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY/workbook/worksheets/{930F8F2B-9F98-4813-A052-DBF499042B0C}"
     url += f"/range(address='A{range_num}')"
     payload = {
         "values" : [[value]],
@@ -263,17 +260,17 @@ async def handle_get_data_raws(num_start, num_end):
             session=session,
             site_name="TEAM 2",
             folder_name="General",
-            file_name="pan_planner_test.xlsm",
-            worksheet_name="From W1_2023",
+            file_name="2023-TEAM 2_230109.xlsm",
+            worksheet_name="Quarter 4",
         )
         await msGraph.get_access_token()
 
-        date_row_num = 24
-        dates = await msGraph.get_data_on_excel_file_by_range(range_rows=f"S{date_row_num}:OO{date_row_num}")
+        date_row_num = 14
+        dates = await msGraph.get_data_on_excel_file_by_range(range_rows=f"Q{date_row_num}:AV{date_row_num}")
         date_object = format_dates_with_excel_style(dates=dates)
 
         for row_num in range(num_start, num_end):
-            range_excel_rows = f"A{row_num}:OO{row_num}"
+            range_excel_rows = f"A{row_num}:AV{row_num}"
             promise = asyncio.ensure_future(msGraph.get_data_on_excel_file_by_range(row_num=row_num, range_rows=range_excel_rows))
             promises.append(promise)
         row_object = await asyncio.gather(*promises)
@@ -296,7 +293,7 @@ async def handle_get_data_raws(num_start, num_end):
 #             promise = asyncio.ensure_future(msGraph.patch_worksheet(
 #                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
 #                 file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
-#                 worksheet_id="{B85C4123-37D8-4048-BFF6-4CD980E78699}",
+#                 worksheet_id="{930F8F2B-9F98-4813-A052-DBF499042B0C}",
 #                 range_rows=range_excel_rows,
 #                 payload=payload
 #             ))

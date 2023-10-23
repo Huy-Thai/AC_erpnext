@@ -526,7 +526,7 @@ def get_list_context(context=None):
     
 
 async def handler_insert_timesheets():
-    data_raws = await handle_get_data_raws(num_start=213, num_end=3000)
+    data_raws = await handle_get_data_raws(num_start=24, num_end=300)
     time_sheets_raw = data_raws[0]
     dates_raw = data_raws[1]
     ms_access_token = data_raws[2]
@@ -536,18 +536,19 @@ async def handler_insert_timesheets():
 
         for row_num in sheet:
             cell = sheet[row_num]
-            if cell is None or cell["B"] == "Pa" or cell["P"] == "": continue
+            if cell is None or cell["B"] == "Pa" or cell["O"] == "": continue
             dates, date_string = mapping_cell_with_dates_raw(cell, dates_raw)
 
             project_code = cell["C"]
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
 
-            task = cell["P"]
-            activity_code = cell["O"]
-            employee_name = cell["N"]
-            progress = cell["M"].replace("%", "")
-            task_status = EXCEL_TASK_STATUS[cell["M"]] if cell["M"] in EXCEL_TASK_STATUS else "Open"
+            task = cell["O"]
+            activity_code = cell["N"]
+            employee_name = cell["M"]
+            progress = cell["L"].replace("%", "")
+            task_status = EXCEL_TASK_STATUS[cell["P"]]
+			# TODO: check all fields required and fill color inside cell empty value
 
             if employee_name == "": continue
             new_key = f"{project_code};{employee_name};{progress};{activity_code};{task};{date_string}"
@@ -572,7 +573,6 @@ async def handler_insert_timesheets():
 
             if emp_name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
-                time_sheet_doc.parent_project = project_code
                 time_sheet_doc.company = "ACONS"
                 time_sheet_doc.employee = emp_name
                 time_sheet_doc.status = EXCEL_TIME_SHEET_STATUS[task_status]
