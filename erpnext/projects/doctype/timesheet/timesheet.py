@@ -573,6 +573,7 @@ async def handler_insert_timesheets():
 
             if emp_name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
+                time_sheet_doc.parent_project = project_code
                 time_sheet_doc.company = "ACONS"
                 time_sheet_doc.employee = emp_name
                 time_sheet_doc.status = EXCEL_TIME_SHEET_STATUS[task_status]
