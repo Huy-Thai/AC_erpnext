@@ -201,7 +201,7 @@ def format_dates_with_excel_style(dates):
 
     result = {}
     for idx, value in enumerate(dates):
-        column = excel_style(None, idx + 19)
+        column = excel_style(None, idx + 21)
         result[column] = convert_str_to_date_object(value, is_abb_month=True)
 
     return result
