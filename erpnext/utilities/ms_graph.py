@@ -9,7 +9,7 @@ _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 
-EXCEL_PARENT_TASK = { "": "Medium", "0_Pre CO": "acfd714ce2", "1_CO": "139b832bc2", "2_BD": "2180360833", "3_DD": "dd6e2e3812", "4_TD": "2f9d551101", "5_CD": "8023301194", "6_AU": "fb98016b55", "7_Other": "55e7df4bed" }
+EXCEL_PARENT_TASK = { "": "55e7df4bed", "0_Pre CO": "acfd714ce2", "1_CO": "139b832bc2", "2_BD": "2180360833", "3_DD": "dd6e2e3812", "4_TD": "2f9d551101", "5_CD": "8023301194", "6_AU": "fb98016b55", "7_Other": "55e7df4bed" }
 EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "4_Low": "Low" }
 EXCEL_TASK_STATUS = { "": "Open", "1_Open": "Open", "2_In progress": "In Progress", "3_Pending": "Pending", "4_Cancel": "Cancel", "5_Done": "Done", "6_Review": "Review" }
 EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Done": "Completed", "Cancel": "Cancelled" }
