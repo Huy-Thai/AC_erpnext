@@ -263,6 +263,7 @@ class PurchaseReceipt(BuyingController):
 		self.make_gl_entries()
 		self.repost_future_sle_and_gle()
 		self.set_consumed_qty_in_subcontract_order()
+		self.reserve_stock_for_sales_order()
 
 	def check_next_docstatus(self):
 		submit_rv = frappe.db.sql(
@@ -491,7 +492,6 @@ class PurchaseReceipt(BuyingController):
 				return
 
 			# divisional loss adjustment
-			expenses_included_in_valuation = self.get_company_default("expenses_included_in_valuation")
 			valuation_amount_as_per_doc = (
 				flt(outgoing_amount, d.precision("base_net_amount"))
 				+ flt(item.landed_cost_voucher_amount)
@@ -505,13 +505,10 @@ class PurchaseReceipt(BuyingController):
 			)
 
 			if divisional_loss:
-				if self.is_return or flt(item.item_tax_amount):
-					loss_account = expenses_included_in_valuation
-				else:
-					loss_account = (
-						self.get_company_default("default_expense_account", ignore_validation=True)
-						or stock_asset_rbnb
-					)
+				loss_account = (
+					self.get_company_default("default_expense_account", ignore_validation=True)
+					or stock_asset_rbnb
+				)
 
 				cost_center = item.cost_center or frappe.get_cached_value(
 					"Company", self.company, "cost_center"
@@ -545,17 +542,19 @@ class PurchaseReceipt(BuyingController):
 					d, gl_entries, self.posting_date, d.get("provisional_expense_account")
 				)
 			elif flt(d.qty) and (flt(d.valuation_rate) or self.is_return):
-				is_asset_pr = any(d.is_fixed_asset for d in self.get("items"))
 				remarks = self.get("remarks") or _("Accounting Entry for {0}").format(
-					"Asset" if is_asset_pr else "Stock"
+					"Asset" if d.is_fixed_asset else "Stock"
 				)
 
-				if not (erpnext.is_perpetual_inventory_enabled(self.company) or is_asset_pr):
-					return
+				if not (
+					(erpnext.is_perpetual_inventory_enabled(self.company) and d.item_code in stock_items)
+					or d.is_fixed_asset
+				):
+					continue
 
 				stock_asset_rbnb = (
 					self.get_company_default("asset_received_but_not_billed")
-					if is_asset_pr
+					if d.is_fixed_asset
 					else self.get_company_default("stock_received_but_not_billed")
 				)
 				landed_cost_entries = get_item_account_wise_additional_cost(self.name)
@@ -684,10 +683,8 @@ class PurchaseReceipt(BuyingController):
 
 		if negative_expense_to_be_booked and valuation_tax:
 			# Backward compatibility:
-			# If expenses_included_in_valuation account has been credited in against PI
 			# and charges added via Landed Cost Voucher,
 			# post valuation related charges on "Stock Received But Not Billed"
-			# introduced in 2014 for backward compatibility of expenses already booked in expenses_included_in_valuation account
 			against_account = ", ".join([d.account for d in gl_entries if flt(d.debit) > 0])
 			total_valuation_amount = sum(valuation_tax.values())
 			amount_including_divisional_loss = negative_expense_to_be_booked
@@ -763,7 +760,36 @@ class PurchaseReceipt(BuyingController):
 			pr_doc = self if (pr == self.name) else frappe.get_doc("Purchase Receipt", pr)
 			update_billing_percentage(pr_doc, update_modified=update_modified)
 
-		self.load_from_db()
+	def reserve_stock_for_sales_order(self):
+		if self.is_return or not cint(
+			frappe.db.get_single_value("Stock Settings", "auto_reserve_stock_for_sales_order_on_purchase")
+		):
+			return
+
+		self.reload()  # reload to get the Serial and Batch Bundle Details
+
+		so_items_details_map = {}
+		for item in self.items:
+			if item.sales_order and item.sales_order_item:
+				item_details = {
+					"name": item.sales_order_item,
+					"item_code": item.item_code,
+					"warehouse": item.warehouse,
+					"qty_to_reserve": item.stock_qty,
+					"from_voucher_no": item.parent,
+					"from_voucher_detail_no": item.name,
+					"serial_and_batch_bundle": item.serial_and_batch_bundle,
+				}
+				so_items_details_map.setdefault(item.sales_order, []).append(item_details)
+
+		if so_items_details_map:
+			for so, items_details in so_items_details_map.items():
+				so_doc = frappe.get_doc("Sales Order", so)
+				so_doc.create_stock_reservation_entries(
+					items_details=items_details,
+					from_voucher_type="Purchase Receipt",
+					notify=True,
+				)
 
 
 def get_stock_value_difference(voucher_no, voucher_detail_no, warehouse):
