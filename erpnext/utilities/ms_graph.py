@@ -145,30 +145,17 @@ class MSGraph:
         return resp
 
 
-    async def get_data_on_excel_file_by_range(self, range_rows, row_num=None):
+    async def get_data_on_excel_file_by_range(self, body, range_rows, row_num=None):
         try:
-            await self.get_access_token() # 1
-
-            site_res = await self.get_site() # 2
-            site_id = site_res['id']
-
-            folder_res = (await self.get_folder(site_id=site_id)) # 3
-            folder_id = folder_res['id']
-
-            file_res = (await self.get_items_in_folder(site_id=site_id, folder_id=folder_id)) # 4
-            file_id = file_res['id']
-
-            worksheet_res = (await self.get_worksheet(site_id=site_id, file_id=file_id)) # 5
-            worksheet_id = worksheet_res['id']
+            await self.get_access_token()
 
             response = await self.get_worksheet_detail(
-                site_id=site_id,
-                file_id=file_id,
-                worksheet_id=worksheet_id,
+                site_id=body['site_id'],
+                file_id=body['file_id'],
+                worksheet_id=body['worksheet_id'],
                 range_rows=range_rows,
-            ) # 6
-            
-            print('worksheet_detail', response)
+            )
+
             if ("text" not in response) or (response["text"][0] == None): return None
             if row_num == None: return response["text"][0]
 
@@ -182,35 +169,6 @@ class MSGraph:
             return result
         except Exception as err:
             print(f"Get data on excel file by range failed with: {err}")
-            return None
-
-
-    async def update_column_excel_file(self, range_num, value):
-        import requests
-        try:
-            await self.get_access_token() # 1
-
-            site_id = (await self.get_site())['id'] # 2
-
-            folder_id = (await self.get_folder(site_id=site_id))['id'] # 3
-
-            file_id = (await self.get_items_in_folder(site_id=site_id, folder_id=folder_id))['id'] # 4
-
-            worksheet_id = (await self.get_worksheet(site_id=site_id, file_id=file_id))['id'] # 5
-
-            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.access_token}"}
-            url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}"
-            url += f"/range(address='A{range_num}')"
-            payload = {
-                "values" : [[value]],
-                "formulas" : [[None]],
-                "numberFormat" : [[None]]
-            }
-
-            response = requests.patch(url, data=json.dumps(payload), headers=headers)
-            return response
-        except Exception as err:
-            print(f"Update column on excel file failed with: {err}")
             return None
 
 
@@ -307,42 +265,44 @@ def split_str_get_key(input_data, char_split):
     return index_0, index_1
 
 
-async def handle_get_data_raws(site_name, folder_name, file_name, worksheet_name, num_start, num_end):
+async def handle_get_data_raws(body_query, num_start, num_end):
     promises = []
     async with ClientSession() as session:
         msGraph = MSGraph(
             session=session,
-            site_name=site_name,
-            folder_name=folder_name,
-            file_name=file_name,
-            worksheet_name=worksheet_name,
+            site_name=None,
+            folder_name=None,
+            file_name=None,
+            worksheet_name=None,
         )
 
         date_row_num = 14
-        dates = await msGraph.get_data_on_excel_file_by_range(range_rows=f"Q{date_row_num}:DE{date_row_num}")
+        dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:DE{date_row_num}")
         date_object = format_dates_with_excel_style(dates=dates)
 
         for row_num in range(num_start, num_end):
             range_excel_rows = f"A{row_num}:DE{row_num}"
-            promise = asyncio.ensure_future(msGraph.get_data_on_excel_file_by_range(row_num=row_num, range_rows=range_excel_rows))
+            promise = asyncio.ensure_future(msGraph.get_data_on_excel_file_by_range(body=body_query, row_num=row_num, range_rows=range_excel_rows))
             promises.append(promise)
         row_object = await asyncio.gather(*promises)
 
-        return row_object, date_object
+        return row_object, date_object, msGraph.access_token
 
 
-async def handle_update_A_colum_to_excel(site_name, folder_name, file_name, worksheet_name, payload):
-    promises = []
-    async with ClientSession() as session:
-        msGraph = MSGraph(
-            session=session,
-            site_name=site_name,
-            folder_name=folder_name,
-            file_name=file_name,
-            worksheet_name=worksheet_name,
-        )
+def update_column_excel_file(access_token, body_query, range_num, value):
+    import requests
+    try:
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {access_token}"}
+        url = f"https://graph.microsoft.com/v1.0/sites/{body_query['site_id']}/drive/items/{body_query['file_id']}/workbook/worksheets/{body_query['worksheet_id']}"
+        url += f"/range(address='A{range_num}')"
+        payload = {
+            "values" : [[value]],
+            "formulas" : [[None]],
+            "numberFormat" : [[None]]
+        }
 
-        for row_num, hash_key in payload.items():
-            promise = asyncio.ensure_future(msGraph.update_column_excel_file(range_num=row_num, value=hash_key))
-            promises.append(promise)
-        await asyncio.gather(*promises)
+        response = requests.patch(url, data=json.dumps(payload), headers=headers)
+        return response
+    except Exception as err:
+        print(f"Update column on excel file failed with: {err}")
+        return None

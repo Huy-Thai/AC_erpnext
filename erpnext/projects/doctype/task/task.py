@@ -400,7 +400,7 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.project = payload.project
     task_doc.status = payload.status
     task_doc.priority = payload.priority
-    task_doc.parent_task = payload.parent_task
+    # task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
     task_doc.expected_time = payload.expected_time
 

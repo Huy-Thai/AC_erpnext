@@ -15,7 +15,7 @@ from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_handle_get_task
 from erpnext.utilities.ms_graph import (
     EXCEL_TASK_STATUS, EXCEL_TIME_SHEET_STATUS, TIME_SHEET_STATUS_CANCEL_UPDATE, TaskModel,
-	handle_get_data_raws, handle_update_A_colum_to_excel,
+	handle_get_data_raws, update_column_excel_file,
 	hash_str_8_dig, split_str_get_key, mapping_cell_with_dates_raw )
 
 
@@ -525,11 +525,11 @@ def get_list_context(context=None):
 	}
     
 
-async def handler_insert_timesheets(site_name, folder_name, file_name, worksheet_name, num_start, num_end):
-    data_raws = await handle_get_data_raws(site_name, folder_name, file_name, worksheet_name, num_start, num_end)
+async def handler_insert_timesheets(body_query, num_start, num_end):
+    data_raws = await handle_get_data_raws(body_query, num_start, num_end)
     time_sheets_raw = data_raws[0]
     dates_raw = data_raws[1]
-    update_payload = {}
+    ms_access_token = data_raws[2]
 
     for sheet in time_sheets_raw:
         if sheet is None: continue
@@ -594,29 +594,30 @@ async def handler_insert_timesheets(site_name, folder_name, file_name, worksheet
 
                 time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
                 if task_status == "Done": time_sheet_doc.submit()
-                update_payload[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
-
-    # await handle_update_A_colum_to_excel(site_name, folder_name, file_name, worksheet_name, update_payload)
-    frappe.db.commit()
+                A_column_value = f"{new_hash_key}--{time_sheet_doc.name}"
+                update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
+        frappe.db.commit()
 
 
 def process_handle_timesheet_from_excel_team_2_q123():
-    site_name="TEAM 2"
-    folder_name="General"
-    file_name="2023-TEAM 2_230109.xlsm"
-    worksheet_name="Q1_2_3"
     num_start=70
     num_end=2730
-    asyncio.run(handler_insert_timesheets(site_name, folder_name, file_name, worksheet_name, num_start, num_end))
+    body_query={
+        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+        'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
+    }
+    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end))
 	
 def process_handle_timesheet_from_excel_team_2_q4():
-    site_name="TEAM 2"
-    folder_name="General"
-    file_name="2023-TEAM 2_230109.xlsm"
-    worksheet_name="Q4"
     num_start=21
-    num_end=600
-    asyncio.run(handler_insert_timesheets(site_name, folder_name, file_name, worksheet_name, num_start, num_end))
+    num_end=700
+    body_query={
+        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+        'worksheet_id': '{930F8F2B-9F98-4813-A052-DBF499042B0C}',
+    }
+    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end))
 
 # def process_handle_timesheet_from_excel_team_civil_q4():
 #     site_name="WAKANDA (Civil team)"
@@ -624,5 +625,5 @@ def process_handle_timesheet_from_excel_team_2_q4():
 #     file_name="2023-TEAM CIVIL_PLANNER.xlsm"
 #     worksheet_name="Quarter 4"
 #     num_start=24
-#     num_end=1000
+#     num_end=700
 #     asyncio.run(handler_insert_timesheets(site_name, folder_name, file_name, worksheet_name, num_start, num_end))
