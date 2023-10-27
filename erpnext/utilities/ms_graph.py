@@ -1,3 +1,5 @@
+import json
+import frappe
 import asyncio
 import hashlib
 
@@ -8,6 +10,7 @@ from functools import cache
 _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
+_CACHE_EXPIRED = 432000 # 5 day
 
 EXCEL_PARENT_TASK = { "": "55e7df4bed", "0_Pre CO": "acfd714ce2", "1_CO": "139b832bc2", "2_BD": "2180360833", "3_DD": "dd6e2e3812", "4_TD": "2f9d551101", "5_CD": "8023301194", "6_AU": "fb98016b55", "7_Other": "55e7df4bed" }
 EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "4_Low": "Low" }
@@ -47,9 +50,15 @@ class MSGraph:
         self.folder_name = folder_name
         self.file_name = file_name
         self.worksheet_name = worksheet_name
+        self.frappe_cache = frappe.cache()
 
 
     async def get_access_token(self):
+        cache_key = "access_token"
+        if result_cache := self.frappe_cache.get_value(cache_key):
+            self.access_token = result_cache
+            return
+
         AUTH_URL = f"https://login.microsoftonline.com/{_TENANT_ID}/oauth2/v2.0/token"
         PAYLOAD = {
             "grant_type": "client_credentials",
@@ -59,38 +68,58 @@ class MSGraph:
         }
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
         self.access_token = resp["access_token"] if resp else None
+        self.frappe_cache.set_value(cache_key, self.access_token, expires_in_sec=2700) # 45 minutes
         return
 
 
     async def get_site(self):
         assert self.site_name != None, "Param site_name is required"
+        if result_cache := self.frappe_cache.get_value(self.site_name):
+            return json.loads(result_cache)
+
         SITES_URL = "https://graph.microsoft.com/v1.0/sites"
         resp = await http_client(url=SITES_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.site_name)
+        self.frappe_cache.set_value(self.site_name, json.dumps(result), expires_in_sec=_CACHE_EXPIRED)
         return result
 
 
     async def get_folder(self, site_id):
         assert self.folder_name != None and site_id != None, "Param folder_name and site_id are required"
+        cache_key = f'{site_id}_{self.folder_name}'
+        if result_cache := self.frappe_cache.get_value(cache_key):
+            return json.loads(result_cache)
+
         FOLDERS_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root/children"
         resp = await http_client(url=FOLDERS_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.folder_name)
+        self.frappe_cache.set_value(cache_key, json.dumps(result), expires_in_sec=_CACHE_EXPIRED)
         return result
 
 
     async def get_items_in_folder(self, site_id, folder_id):
         assert self.file_name != None and site_id != None and folder_id != None, "Param file_name and site_id and folder_id are required"
+        cache_key = f'{site_id}_{folder_id}_{self.file_name}'
+        if result_cache := self.frappe_cache.get_value(cache_key):
+            return json.loads(result_cache)
+
         ITEMS_FOLDER_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{folder_id}/children"
         resp = await http_client(url=ITEMS_FOLDER_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.file_name)
+        self.frappe_cache.set_value(cache_key, json.dumps(result), expires_in_sec=_CACHE_EXPIRED)
         return result
 
 
     async def get_worksheet(self, site_id, file_id):
         assert self.worksheet_name != None and file_id != None and site_id != None, "Param worksheet_name and file_id and site_id are required"
+        cache_key = f'{site_id}_{file_id}_{self.worksheet_name}'
+        if result_cache := self.frappe_cache.get_value(cache_key):
+            return json.loads(result_cache)
+
         WORKSHEETS_URL = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets"
         resp = await http_client(url=WORKSHEETS_URL, session=self.session, access_token=self.access_token)
         result = get_result_in_arr_dict(arr=resp["value"], key="name", value=self.worksheet_name)
+        self.frappe_cache.set_value(cache_key, json.dumps(result), expires_in_sec=_CACHE_EXPIRED)
         return result
 
 
@@ -118,13 +147,22 @@ class MSGraph:
 
     async def get_data_on_excel_file_by_range(self, range_rows, row_num=None):
         try:
-            # TODO: build payload for get all file of teams
+            await self.get_access_token() # 1
+
+            site_id = await self.get_site()['id'] # 2
+
+            folder_id = await self.get_folder(site_id=site_id)['id'] # 3
+
+            file_id = await self.get_items_in_folder(site_id=site_id, folder_id=folder_id)['id'] # 4
+
+            worksheet_id = await self.get_worksheet(site_id=site_id, file_id=file_id)['id'] # 5
+
             response = await self.get_worksheet_detail(
-                site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
-                file_id="01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY",
-                worksheet_id="{930F8F2B-9F98-4813-A052-DBF499042B0C}",
+                site_id=site_id,
+                file_id=file_id,
+                worksheet_id=worksheet_id,
                 range_rows=range_rows,
-            )
+            ) # 6
 
             if ("text" not in response) or (response["text"][0] == None): return None
             if row_num == None: return response["text"][0]
@@ -140,7 +178,36 @@ class MSGraph:
         except Exception as err:
             print(f"Get data on excel file by range failed with: {err}")
             return None
-        
+
+
+    async def update_column_excel_file(self, range_num, value):
+        import requests
+        try:
+            await self.get_access_token() # 1
+
+            site_id = await self.get_site()['id'] # 2
+
+            folder_id = await self.get_folder(site_id=site_id)['id'] # 3
+
+            file_id = await self.get_items_in_folder(site_id=site_id, folder_id=folder_id)['id'] # 4
+
+            worksheet_id = await self.get_worksheet(site_id=site_id, file_id=file_id)['id'] # 5
+
+            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.access_token}"}
+            url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}"
+            url += f"/range(address='A{range_num}')"
+            payload = {
+                "values" : [[value]],
+                "formulas" : [[None]],
+                "numberFormat" : [[None]]
+            }
+
+            response = requests.patch(url, data=json.dumps(payload), headers=headers)
+            return response
+        except Exception as err:
+            print(f"Update column on excel file failed with: {err}")
+            return None
+
 
 async def http_client(url, session, access_token=None, payload=None, method="GET"):
     headers = { "Authorization ": f"Bearer {access_token}" } if access_token else None
@@ -235,36 +302,16 @@ def split_str_get_key(input_data, char_split):
     return index_0, index_1
 
 
-def request_update_A_column_to_excel(access_token, value, range_num):
-    import requests
-    import json
-
-    if access_token is None: return None
-
-    head = {"Content-Type": "application/json", "Authorization": f"Bearer {access_token}"}
-    url = "https://graph.microsoft.com/v1.0/sites/aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d/drive/items/01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY/workbook/worksheets/{930F8F2B-9F98-4813-A052-DBF499042B0C}"
-    url += f"/range(address='A{range_num}')"
-    payload = {
-        "values" : [[value]],
-        "formulas" : [[None]],
-        "numberFormat" : [[None]]
-    }
-    res = requests.patch(url, data=json.dumps(payload), headers=head)
-    return res
-
-
-async def handle_get_data_raws(num_start, num_end):
+async def handle_get_data_raws(site_name, folder_name, file_name, worksheet_name, num_start, num_end):
     promises = []
     async with ClientSession() as session:
         msGraph = MSGraph(
-            # TODO: implement payload here
             session=session,
-            site_name="TEAM 2",
-            folder_name="General",
-            file_name="2023-TEAM 2_230109.xlsm",
-            worksheet_name="Quarter 4",
+            site_name=site_name,
+            folder_name=folder_name,
+            file_name=file_name,
+            worksheet_name=worksheet_name,
         )
-        await msGraph.get_access_token()
 
         date_row_num = 14
         dates = await msGraph.get_data_on_excel_file_by_range(range_rows=f"Q{date_row_num}:DE{date_row_num}")
@@ -276,28 +323,21 @@ async def handle_get_data_raws(num_start, num_end):
             promises.append(promise)
         row_object = await asyncio.gather(*promises)
 
-        return row_object, date_object, msGraph.access_token
+        return row_object, date_object
 
 
-# async def handle_update_A_colum_to_excel(data):
-#     promises = []
-#     async with ClientSession() as session:
-#         msGraph = MSGraph(session=session)
-#         for row_num, hash_key in data.items():
-#             range_excel_rows = f"A{row_num}"
-#             payload = {
-#                 "values" : [[hash_key]],
-#                 "formulas" : [[None]],
-#                 "numberFormat" : [[None]]
-#             }
+async def handle_update_A_colum_to_excel(site_name, folder_name, file_name, worksheet_name, payload):
+    promises = []
+    async with ClientSession() as session:
+        msGraph = MSGraph(
+            session=session,
+            site_name=site_name,
+            folder_name=folder_name,
+            file_name=file_name,
+            worksheet_name=worksheet_name,
+        )
 
-#             promise = asyncio.ensure_future(msGraph.patch_worksheet(
-#                 site_id="aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d",
-#                 file_id="01EFHQ6NEXPIGQODOI4ZDYELPV7QFK7HFQ",
-#                 worksheet_id="{930F8F2B-9F98-4813-A052-DBF499042B0C}",
-#                 range_rows=range_excel_rows,
-#                 payload=payload
-#             ))
-#             promises.append(promise)
-
-#         await asyncio.gather(*promises)
+        for row_num, hash_key in payload.items():
+            promise = asyncio.ensure_future(msGraph.update_column_excel_file(range_num=row_num, value=hash_key))
+            promises.append(promise)
+        await asyncio.gather(*promises)
