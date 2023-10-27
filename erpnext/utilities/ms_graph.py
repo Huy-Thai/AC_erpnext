@@ -149,13 +149,13 @@ class MSGraph:
         try:
             await self.get_access_token() # 1
 
-            site_id = await self.get_site()['id'] # 2
+            site_id = (await self.get_site())['id'] # 2
 
-            folder_id = await self.get_folder(site_id=site_id)['id'] # 3
+            folder_id = (await self.get_folder(site_id=site_id))['id'] # 3
 
-            file_id = await self.get_items_in_folder(site_id=site_id, folder_id=folder_id)['id'] # 4
+            file_id = (await self.get_items_in_folder(site_id=site_id, folder_id=folder_id))['id'] # 4
 
-            worksheet_id = await self.get_worksheet(site_id=site_id, file_id=file_id)['id'] # 5
+            worksheet_id = (await self.get_worksheet(site_id=site_id, file_id=file_id))['id'] # 5
 
             response = await self.get_worksheet_detail(
                 site_id=site_id,
@@ -185,13 +185,13 @@ class MSGraph:
         try:
             await self.get_access_token() # 1
 
-            site_id = await self.get_site()['id'] # 2
+            site_id = (await self.get_site())['id'] # 2
 
-            folder_id = await self.get_folder(site_id=site_id)['id'] # 3
+            folder_id = (await self.get_folder(site_id=site_id))['id'] # 3
 
-            file_id = await self.get_items_in_folder(site_id=site_id, folder_id=folder_id)['id'] # 4
+            file_id = (await self.get_items_in_folder(site_id=site_id, folder_id=folder_id))['id'] # 4
 
-            worksheet_id = await self.get_worksheet(site_id=site_id, file_id=file_id)['id'] # 5
+            worksheet_id = (await self.get_worksheet(site_id=site_id, file_id=file_id))['id'] # 5
 
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.access_token}"}
             url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/items/{file_id}/workbook/worksheets/{worksheet_id}"
