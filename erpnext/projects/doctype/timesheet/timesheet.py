@@ -615,7 +615,7 @@ def process_handle_timesheet_from_excel_team_2_q4():
     file_name="2023-TEAM 2_230109.xlsm"
     worksheet_name="Q4"
     num_start=21
-    num_end=1000
+    num_end=600
     asyncio.run(handler_insert_timesheets(site_name, folder_name, file_name, worksheet_name, num_start, num_end))
 
 # def process_handle_timesheet_from_excel_team_civil_q4():
