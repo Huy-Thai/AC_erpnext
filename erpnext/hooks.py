@@ -411,15 +411,12 @@ scheduler_events = {
 		# "45 0 * * *": [
 		# 	"erpnext.stock.reorder_item.reorder_item",
 		# ],
-		"30 23 * * MON-SAT": [
-			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_2_q123",
-		],
-        "40 23 * * MON-SAT": [
+        "0 23 * * MON-SAT": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_2_q4",
+		],
+        "10 23 * * MON-SAT": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
 		]
-        # "50 23 * * MON-SAT": [
-		# 	"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
-		# ]
 	},
 	# "hourly": [
 	# 	"erpnext.erpnext_integrations.doctype.plaid_settings.plaid_settings.automatic_synchronization",
