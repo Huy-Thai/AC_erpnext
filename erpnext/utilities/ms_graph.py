@@ -149,13 +149,21 @@ class MSGraph:
         try:
             await self.get_access_token() # 1
 
-            site_id = (await self.get_site())['id'] # 2
+            site_res = await self.get_site() # 2
+            print('site_res', site_res)
+            site_id = site_res['id']
 
-            folder_id = (await self.get_folder(site_id=site_id))['id'] # 3
+            folder_res = (await self.get_folder(site_id=site_id))['id'] # 3
+            print('folder_res', folder_res)
+            folder_id = folder_res['id']
 
-            file_id = (await self.get_items_in_folder(site_id=site_id, folder_id=folder_id))['id'] # 4
+            file_res = (await self.get_items_in_folder(site_id=site_id, folder_id=folder_id))['id'] # 4
+            print('file_res', file_res)
+            file_id = file_res['id']
 
-            worksheet_id = (await self.get_worksheet(site_id=site_id, file_id=file_id))['id'] # 5
+            worksheet_res = (await self.get_worksheet(site_id=site_id, file_id=file_id))['id'] # 5
+            print('worksheet_res', worksheet_res)
+            worksheet_id = worksheet_res['id']
 
             response = await self.get_worksheet_detail(
                 site_id=site_id,
