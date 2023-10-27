@@ -596,7 +596,7 @@ async def handler_insert_timesheets(site_name, folder_name, file_name, worksheet
                 if task_status == "Done": time_sheet_doc.submit()
                 update_payload[row_num] = f"{new_hash_key}--{time_sheet_doc.name}"
 
-    await handle_update_A_colum_to_excel(site_name, folder_name, file_name, worksheet_name, update_payload)
+    # await handle_update_A_colum_to_excel(site_name, folder_name, file_name, worksheet_name, update_payload)
     frappe.db.commit()
 
 

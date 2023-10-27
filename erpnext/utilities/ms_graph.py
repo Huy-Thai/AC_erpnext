@@ -150,19 +150,15 @@ class MSGraph:
             await self.get_access_token() # 1
 
             site_res = await self.get_site() # 2
-            print('site_res', site_res)
             site_id = site_res['id']
 
             folder_res = (await self.get_folder(site_id=site_id)) # 3
-            print('folder_res', folder_res)
             folder_id = folder_res['id']
 
             file_res = (await self.get_items_in_folder(site_id=site_id, folder_id=folder_id)) # 4
-            print('file_res', file_res)
             file_id = file_res['id']
 
             worksheet_res = (await self.get_worksheet(site_id=site_id, file_id=file_id)) # 5
-            print('worksheet_res', worksheet_res)
             worksheet_id = worksheet_res['id']
 
             response = await self.get_worksheet_detail(
@@ -171,7 +167,8 @@ class MSGraph:
                 worksheet_id=worksheet_id,
                 range_rows=range_rows,
             ) # 6
-
+            
+            print('worksheet_detail', response)
             if ("text" not in response) or (response["text"][0] == None): return None
             if row_num == None: return response["text"][0]
 
