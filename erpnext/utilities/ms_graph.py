@@ -277,11 +277,11 @@ async def handle_get_data_raws(body_query, num_start, num_end):
         )
 
         date_row_num = 14
-        dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:DE{date_row_num}")
+        dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:KZ{date_row_num}")
         date_object = format_dates_with_excel_style(dates=dates)
 
         for row_num in range(num_start, num_end):
-            range_excel_rows = f"A{row_num}:DE{row_num}"
+            range_excel_rows = f"A{row_num}:KZ{row_num}"
             promise = asyncio.ensure_future(msGraph.get_data_on_excel_file_by_range(body=body_query, row_num=row_num, range_rows=range_excel_rows))
             promises.append(promise)
         row_object = await asyncio.gather(*promises)
