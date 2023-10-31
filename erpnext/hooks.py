@@ -415,6 +415,9 @@ scheduler_events = {
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_2_q4",
 		],
         "10 23 * * MON-SAT": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_cad",
+		],
+        "20 23 * * MON-SAT": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
 		]
 	},
