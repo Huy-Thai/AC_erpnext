@@ -600,7 +600,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
 	
 def process_handle_timesheet_from_excel_team_2_q4():
-    num_start=21
+    num_start=6
     num_end=800
     date_row_num=3
     body_query={
@@ -611,7 +611,7 @@ def process_handle_timesheet_from_excel_team_2_q4():
     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
 
 def process_handle_timesheet_from_excel_team_civil_q4():
-    num_start=6
+    num_start=24
     num_end=800
     date_row_num=15
     body_query={
@@ -635,7 +635,7 @@ def process_handle_timesheet_from_excel_cad():
 
 # =============== OLD FILE ====================
 def process_handle_timesheet_from_excel_team_2_q123_1():
-    num_start=70
+    num_start=6
     num_end=800
     date_row_num=3
     body_query={
