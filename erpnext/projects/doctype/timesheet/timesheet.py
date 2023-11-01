@@ -611,7 +611,7 @@ def process_handle_timesheet_from_excel_team_2_q4():
     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
 
 def process_handle_timesheet_from_excel_team_civil_q4():
-    num_start=24
+    num_start=6
     num_end=800
     date_row_num=15
     body_query={
@@ -622,8 +622,8 @@ def process_handle_timesheet_from_excel_team_civil_q4():
     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
 
 def process_handle_timesheet_from_excel_cad():
-    num_start=19
-    num_end=800
+    num_start=6
+    num_end=600
     date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,c98ba12c-b5dd-4dc4-b11e-33fe796a2b49,3ceb4e77-07b4-4ca8-bb12-e6ffaeeb83c5',
