@@ -265,7 +265,7 @@ def split_str_get_key(input_data, char_split):
     return index_0, index_1
 
 
-async def handle_get_data_raws(body_query, num_start, num_end):
+async def handle_get_data_raws(body_query, num_start, num_end, date_row_num):
     promises = []
     async with ClientSession() as session:
         msGraph = MSGraph(
@@ -276,7 +276,6 @@ async def handle_get_data_raws(body_query, num_start, num_end):
             worksheet_name=None,
         )
 
-        date_row_num = 14
         dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:KZ{date_row_num}")
         date_object = format_dates_with_excel_style(dates=dates)
 
