@@ -403,7 +403,7 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.progress = payload.progress
     task_doc.expected_time = payload.expected_time
 
-    if payload.employee_name != '' & payload.employee_name not in task_doc.assigned_to:
+    if payload.employee_name != '' and payload.employee_name not in task_doc.assigned_to:
         employees = payload.employee_name if task_doc.assigned_to is None else f"{task_doc.assigned_to},{payload.employee_name}"
         task_doc.assigned_to = employees
 
