@@ -11,7 +11,6 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getdate, today
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
-from frappe.desk.form.assign_to import add as add_assignment
 
 from erpnext.utilities.ms_graph import TaskModel
 
@@ -400,22 +399,13 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.project = payload.project
     task_doc.status = payload.status
     task_doc.priority = payload.priority
-    task_doc.parent_task = payload.parent_task
+    # task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
     task_doc.expected_time = payload.expected_time
 
-    task_doc.save() if pre_task_doc is not None else task_doc.insert()
+    if payload.employee_name != '' & payload.employee_name not in task_doc.assigned_to:
+        employees = payload.employee_name if task_doc.assigned_to is None else f"{task_doc.assigned_to},{payload.employee_name}"
+        task_doc.assigned_to = employees
 
-    if payload.employee_name != "":
-        assigns = []
-        user_id = frappe.db.get_value("Employee", {"employee_name": payload.employee_name}, ["user_id"])
-        if user_id is not None:
-            assigns.append(user_id)
-            add_assignment({
-                "assign_to": assigns,
-                "doctype": task_doc.doctype,
-                "name": task_doc.name,
-                "notify": 0
-            })
-    
+    task_doc.save() if pre_task_doc is not None else task_doc.insert()
     return task_doc
