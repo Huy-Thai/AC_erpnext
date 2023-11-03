@@ -246,11 +246,12 @@ def hash_str_8_dig(raw_str):
 def mapping_cell_with_dates_raw(cell, dates_raw):
     dates = {}
     date_string = ""
-    for column, value in cell.items():
-        if column in dates_raw and value != "" and value != None:
-            date = dates_raw[column]
-            dates[date] = value
-            date_string = date_string + column + "-" + value + ";"
+    if cell is not None and len(cell) > 0:
+        for column, value in cell.items():
+            if column in dates_raw and value != None and value != "":
+                date = dates_raw[column]
+                dates[date] = value
+                date_string = date_string + column + "-" + value + ";"
 
     return dates, date_string
 

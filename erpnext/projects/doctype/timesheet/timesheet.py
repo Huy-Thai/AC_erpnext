@@ -598,7 +598,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                 update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
         frappe.db.commit()
 
-	
+
 def process_handle_timesheet_from_excel_team_2_q4():
     num_start=6
     num_end=800
@@ -611,9 +611,9 @@ def process_handle_timesheet_from_excel_team_2_q4():
     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
 
 def process_handle_timesheet_from_excel_team_civil_q4():
-    num_start=24
+    num_start=6
     num_end=800
-    date_row_num=15
+    date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,839d16c5-c2a9-434c-9696-0101f0f021f2,fa307a92-13ac-4b44-be8e-03bfb18ab2d9',
         'file_id': '01KTKY3ULLYD5BEFK7XJHJ5RDY44M26YND',
@@ -623,7 +623,7 @@ def process_handle_timesheet_from_excel_team_civil_q4():
 
 def process_handle_timesheet_from_excel_cad():
     num_start=6
-    num_end=600
+    num_end=800
     date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,c98ba12c-b5dd-4dc4-b11e-33fe796a2b49,3ceb4e77-07b4-4ca8-bb12-e6ffaeeb83c5',
