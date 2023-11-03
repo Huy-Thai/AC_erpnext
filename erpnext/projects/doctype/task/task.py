@@ -393,8 +393,9 @@ def process_handle_get_task(payload: TaskModel):
     task_doc = frappe.new_doc("Task")
     employee = payload.employee_name
 
-    if pre_task_doc is not None and employee in pre_task_doc.assigned_to:
-        task_doc = pre_task_doc
+    if pre_task_doc is not None:
+        if pre_task_doc.assigned_to is not None and employee in pre_task_doc.assigned_to:
+            task_doc = pre_task_doc
 
     task_doc.task_number = payload.task_number
     task_doc.subject = payload.subject
