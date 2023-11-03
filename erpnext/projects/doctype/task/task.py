@@ -391,27 +391,19 @@ def on_doctype_update():
 def process_handle_get_task(payload: TaskModel):
     pre_task_doc = frappe.get_doc(doctype = "Task", subject = payload.subject, project = payload.project)
     task_doc = frappe.new_doc("Task")
-    if pre_task_doc is not None:
+    employee = payload.employee_name
+
+    if pre_task_doc is not None and employee in pre_task_doc.assigned_to:
         task_doc = pre_task_doc
 
     task_doc.task_number = payload.task_number
     task_doc.subject = payload.subject
     task_doc.project = payload.project
-    # task_doc.status = payload.status
+    task_doc.status = payload.status
     task_doc.priority = payload.priority
     task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
     task_doc.expected_time = payload.expected_time
-
-    if payload.employee_name != '' and task_doc.assigned_to is None:
-        employees = payload.employee_name
-
-    elif payload.employee_name != '' and payload.employee_name not in task_doc.assigned_to:
-        employees = f"{task_doc.assigned_to},{payload.employee_name}"
-
-    else:
-        employees = None
-
-    task_doc.assigned_to = employees
+    task_doc.assigned_to = employee
     task_doc.save() if pre_task_doc is not None else task_doc.insert()
     return task_doc
