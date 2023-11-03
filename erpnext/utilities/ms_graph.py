@@ -15,7 +15,7 @@ _CACHE_EXPIRED = 432000 # 5 day
 EXCEL_PARENT_TASK = { "": None, "0_Pre CO": "31c7e0fca6", "1_CO": "8c0ce783ba", "2_BD": "b493e1ee7e", "3_DD": "ca095b7007", "4_TD": "0216871bc3", "5_CD": "78079e408a", "6_AU": "7b281811b0", "7_Other": "e4705bc9f2" }
 EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "4_Low": "Low" }
 EXCEL_TASK_STATUS = { "": "Open", "1_Open": "Open", "2_In progress": "In Progress", "3_Pending": "Pending", "4_Cancel": "Cancel", "5_Done": "Done", "6_Review": "Review" }
-EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Done": "Completed", "Cancel": "Cancelled" }
+EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Pending": "Draft", "Review": "Draft", "Done": "Completed", "Cancel": "Cancelled" }
 TIME_SHEET_STATUS_CANCEL_UPDATE = ["Completed", "Cancelled", "Submitted"]
 
 
