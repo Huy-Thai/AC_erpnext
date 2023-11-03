@@ -404,10 +404,11 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.expected_time = payload.expected_time
 
     if task_doc.assigned_to is None:
-        task_doc.assigned_to = payload.employee_name
-
-    elif payload.employee_name not in task_doc.assigned_to:
-        task_doc.assigned_to = f"{task_doc.assigned_to},{payload.employee_name}"
+        task_doc.assigned_to = f"{payload.employee_name}."
+    else:
+        assigned = task_doc.assigned_to.split(".")
+        if payload.employee_name not in assigned:
+            task_doc.assigned_to = f"{task_doc.assigned_to}{payload.employee_name}."
 
     task_doc.save() if pre_task_doc is not None else task_doc.insert()
     return task_doc
