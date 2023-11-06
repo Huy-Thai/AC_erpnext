@@ -411,13 +411,13 @@ scheduler_events = {
 		# "45 0 * * *": [
 		# 	"erpnext.stock.reorder_item.reorder_item",
 		# ],
-        "0 23 * * MON-SAT": [
+        "35 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_2_q4",
 		],
-        "10 23 * * MON-SAT": [
+        "55 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_cad",
 		],
-        "20 23 * * MON-SAT": [
+        "20 23 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
 		]
 	},

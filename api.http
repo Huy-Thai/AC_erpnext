@@ -47,6 +47,10 @@ content-type: application/json
 
 ###
 
+GET https://acerp-dev.pandion.vn/api/resource/Project/P14222_C21.00 HTTP/1.1
+
+###
+
 GET https://acerp-dev.pandion.vn/api/resource/Task?fields=["name", "assign_to"] HTTP/1.1
 
 ###

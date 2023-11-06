@@ -68,7 +68,7 @@ class MSGraph:
         }
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
         self.access_token = resp["access_token"] if resp else None
-        self.frappe_cache.set_value(cache_key, self.access_token, expires_in_sec=2700) # 45 minutes
+        self.frappe_cache.set_value(cache_key, self.access_token, expires_in_sec=1200) # 20 minutes
         return
 
 
