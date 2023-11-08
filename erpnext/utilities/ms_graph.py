@@ -54,10 +54,10 @@ class MSGraph:
 
 
     async def get_access_token(self):
-        # cache_key = "access_token"
-        # if result_cache := self.frappe_cache.get_value(cache_key):
-        #     self.access_token = result_cache
-        #     return
+        cache_key = "access_token"
+        if result_cache := self.frappe_cache.get_value(cache_key):
+            self.access_token = result_cache
+            return
 
         AUTH_URL = f"https://login.microsoftonline.com/{_TENANT_ID}/oauth2/v2.0/token"
         PAYLOAD = {
@@ -68,7 +68,7 @@ class MSGraph:
         }
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
         self.access_token = resp["access_token"] if resp else None
-        # self.frappe_cache.set_value(cache_key, self.access_token, expires_in_sec=1200) # 20 minutes
+        self.frappe_cache.set_value(cache_key, self.access_token, expires_in_sec=1200) # 20 minutes
         return
 
 
