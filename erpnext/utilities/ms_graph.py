@@ -16,7 +16,6 @@ EXCEL_PARENT_TASK = { "": None, "0_Pre CO": "31c7e0fca6", "1_CO": "8c0ce783ba", 
 EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "4_Low": "Low" }
 EXCEL_TASK_STATUS = { "": "Open", "1_Open": "Open", "2_In progress": "In Progress", "3_Pending": "Pending", "4_Cancel": "Cancel", "5_Done": "Done", "6_Review": "Review" }
 EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Pending": "Draft", "Review": "Draft", "Done": "Completed", "Cancel": "Cancelled" }
-TIME_SHEET_STATUS_CANCEL_UPDATE = ["Completed", "Cancelled", "Submitted"]
 
 
 class TaskModel:
@@ -68,7 +67,7 @@ class MSGraph:
         }
         resp = await http_client(url=AUTH_URL, session=self.session, payload=PAYLOAD)
         self.access_token = resp["access_token"] if resp else None
-        self.frappe_cache.set_value(cache_key, self.access_token, expires_in_sec=1200) # 20 minutes
+        self.frappe_cache.set_value(cache_key, self.access_token, expires_in_sec=2700) # 45 minutes
         return
 
 

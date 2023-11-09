@@ -14,7 +14,7 @@ from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_handle_get_task
 from erpnext.utilities.ms_graph import (
-    EXCEL_TASK_STATUS, EXCEL_TIME_SHEET_STATUS, TIME_SHEET_STATUS_CANCEL_UPDATE, TaskModel,
+    EXCEL_TASK_STATUS, EXCEL_TIME_SHEET_STATUS, TaskModel,
 	handle_get_data_raws, update_column_excel_file,
 	hash_str_8_dig, split_str_get_key, mapping_cell_with_dates_raw )
 
@@ -562,6 +562,11 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id)
 
             if time_sheet_doc is not None:
+                if time_sheet_doc.status == "Submitted":
+                    time_sheet_doc.status = "Cancelled"
+                    time_sheet_doc.save()
+                    time_sheet_doc = frappe.new_doc("Timesheet")
+
                 if time_sheet_doc.employee == emp_name:
                     is_new_time_sheet = False
                 else:
@@ -591,7 +596,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                             },
                         )
 
-                time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()              
+                time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()
                 if task_status == "Done": time_sheet_doc.submit()
                 A_column_value = f"{new_hash_key}--{time_sheet_doc.name}"
                 update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
