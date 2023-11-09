@@ -561,9 +561,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             pre_time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id, employee = emp_name)
             time_sheet_doc = frappe.new_doc("Timesheet")
 
-            print("pre time sheet:", pre_time_sheet_doc)
             if pre_time_sheet_doc is not None and pre_time_sheet_doc.status == "Submitted":
-                pre_time_sheet_doc.db_set("status", "Cancelled", commit=True)
+                pre_time_sheet_doc.cancel()
     
             if pre_time_sheet_doc is not None and pre_time_sheet_doc.status != "Submitted":
                 time_sheet_doc = pre_time_sheet_doc
