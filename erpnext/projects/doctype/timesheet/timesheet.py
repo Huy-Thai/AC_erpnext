@@ -561,6 +561,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id)
 
+            print("timesheet status:", time_sheet_doc.status)
             if time_sheet_doc is not None and time_sheet_doc.status == "Submitted":
                 time_sheet_doc.db_set("status", "Cancelled", commit=True)
 
