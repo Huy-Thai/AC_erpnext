@@ -557,18 +557,16 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             if prev_hash_key == new_hash_key: continue
             task_doc = process_handle_get_task(payload=TaskModel(row_num, cell))
 
-            is_new_time_sheet = True
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-            time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id)
+            pre_time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id, employee = emp_name)
+            time_sheet_doc = frappe.new_doc("Timesheet")
 
-            print("timesheet status:", time_sheet_doc.status)
-            if time_sheet_doc is not None and time_sheet_doc.status == "Submitted":
-                time_sheet_doc.db_set("status", "Cancelled", commit=True)
-
-            if time_sheet_doc is not None and time_sheet_doc.employee == emp_name:
-                is_new_time_sheet = False
-            else:
-                time_sheet_doc = frappe.new_doc("Timesheet")
+            print("pre time sheet:", pre_time_sheet_doc)
+            if pre_time_sheet_doc is not None and pre_time_sheet_doc.status == "Submitted":
+                pre_time_sheet_doc.db_set("status", "Cancelled", commit=True)
+    
+            if pre_time_sheet_doc is not None and pre_time_sheet_doc.status != "Submitted":
+                time_sheet_doc = pre_time_sheet_doc
 
             if emp_name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
@@ -592,7 +590,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                             },
                         )
 
-                time_sheet_doc.insert() if is_new_time_sheet else time_sheet_doc.save()
+                time_sheet_doc.save(ignore_permissions=True) if pre_time_sheet_doc is not None else time_sheet_doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
                 if task_status == "Done": time_sheet_doc.submit()
                 A_column_value = f"{new_hash_key}--{time_sheet_doc.name}"
                 update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
