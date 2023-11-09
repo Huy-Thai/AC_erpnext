@@ -563,8 +563,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
             if time_sheet_doc is not None:
                 if time_sheet_doc.status == "Submitted":
-                    time_sheet_doc.status = "Cancelled"
-                    time_sheet_doc.save()
+                    frappe.db.set_value("Timesheet", {"name": time_sheet_id}, "status", "Cancelled")
                     time_sheet_doc = frappe.new_doc("Timesheet")
 
                 if time_sheet_doc.employee == emp_name:
