@@ -29,7 +29,7 @@ class Task(NestedSet):
 			return ret
 
 	def validate(self):
-		self.validate_dates()
+		# self.validate_dates() #TODO: check if new end date exits
 		self.validate_progress()
 		self.validate_status()
 		self.update_depends_on()
@@ -37,7 +37,7 @@ class Task(NestedSet):
 		self.validate_completed_on()
 
 	def validate_dates(self):
-		# self.validate_from_to_dates("exp_start_date", "exp_end_date")
+		self.validate_from_to_dates("exp_start_date", "exp_end_date")
 		self.validate_from_to_dates("act_start_date", "act_end_date")
 		self.validate_parent_expected_end_date()
 		self.validate_parent_project_dates()
