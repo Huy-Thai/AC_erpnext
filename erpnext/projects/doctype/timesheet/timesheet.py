@@ -563,7 +563,9 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 			
             print("name: ", pre_time_sheet_doc.name)
             print("status: ", pre_time_sheet_doc.status)
-            print("docstatus: ", pre_time_sheet_doc.docstatus)
+            print("docstatus: ", pre_time_sheet_doc.docstatus.is_draft())
+            print("docstatus: ", pre_time_sheet_doc.docstatus.is_submitted())
+            print("docstatus: ", pre_time_sheet_doc.docstatus.is_cancelled())
 
             if pre_time_sheet_doc is not None and pre_time_sheet_doc.status == "Submitted":
                 pre_time_sheet_doc.cancel()
