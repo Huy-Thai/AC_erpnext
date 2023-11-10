@@ -589,7 +589,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                             },
                         )
 
-                time_sheet_doc.save(ignore_permissions=True, ignore_version=True) if pre_time_sheet_doc is not None else time_sheet_doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+                time_sheet_doc.save() if pre_time_sheet_doc is not None else time_sheet_doc.insert()
                 if task_status == "Done": time_sheet_doc.submit()
                 A_column_value = f"{new_hash_key}--{time_sheet_doc.name}"
                 update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
