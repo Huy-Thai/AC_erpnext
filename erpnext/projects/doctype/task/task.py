@@ -410,5 +410,5 @@ def process_handle_get_task(payload: TaskModel):
         if payload.employee_name not in assigned:
             task_doc.assigned_to = f"{task_doc.assigned_to}{payload.employee_name}."
 
-    task_doc.save(ignore_permissions=True) if pre_task_doc is not None else task_doc.insert(ignore_permissions=True)
+    task_doc.save(ignore_permissions=True, ignore_version=True) if pre_task_doc is not None else task_doc.insert(ignore_permissions=True)
     return task_doc
