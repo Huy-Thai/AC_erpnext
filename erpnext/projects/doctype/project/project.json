@@ -25,6 +25,7 @@
   "project_template",
   "expected_start_date",
   "expected_end_date",
+  "new_end_date",
   "priority",
   "department",
   "customer_details",
@@ -192,6 +193,12 @@
    "oldfieldname": "completion_date",
    "oldfieldtype": "Date"
   },
+  {
+    "bold": 1,
+    "fieldname": "new_end_date",
+    "fieldtype": "Date",
+    "label": "New End Date"
+   },
   {
    "fieldname": "priority",
    "fieldtype": "Select",

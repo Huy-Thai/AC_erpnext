@@ -18,6 +18,15 @@ EXCEL_TASK_STATUS = { "": "Open", "1_Open": "Open", "2_In progress": "In Progres
 EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Pending": "Draft", "Review": "Draft", "Done": "Submitted", "Cancel": "Cancelled" }
 
 
+class ProjectModel:
+    def __init__(self, num, cell):
+        self.col_number = num
+        self.prev_hash_key = cell["A"]
+        self.expected_start_date = convert_str_to_date_object(cell["E"])
+        self.expected_end_date = convert_str_to_date_object(cell["F"])
+        self.new_end_date = convert_str_to_date_object(cell["G"])
+
+
 class TaskModel:
     def __init__(self, num, cell):
         assert cell["C"] != "", "Value Cell C is required"

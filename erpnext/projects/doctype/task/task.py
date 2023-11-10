@@ -388,7 +388,7 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 
 
-def process_handle_get_task(payload: TaskModel):
+def process_handle_task_by_excel(payload: TaskModel):
     pre_task_doc = frappe.get_doc(doctype = "Task", subject = payload.subject, project = payload.project)
     task_doc = frappe.new_doc("Task")
     if pre_task_doc is not None:

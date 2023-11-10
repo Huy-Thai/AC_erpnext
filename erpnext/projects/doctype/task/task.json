@@ -188,8 +188,7 @@
     "bold": 1,
     "fieldname": "new_end_date",
     "fieldtype": "Date",
-    "label": "New End Date",
-    "search_index": 1
+    "label": "New End Date"
    },
   {
    "fetch_from": "type.weight",
