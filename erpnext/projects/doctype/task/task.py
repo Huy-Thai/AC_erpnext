@@ -389,7 +389,7 @@ def on_doctype_update():
 
 
 def process_handle_get_task(payload: TaskModel):
-    pre_task_doc = frappe.get_doc(doctype = "Task", subject = payload.subject, project = payload.project).reload()
+    pre_task_doc = frappe.get_doc(doctype = "Task", subject = payload.subject, project = payload.project)
     task_doc = frappe.new_doc("Task")
     if pre_task_doc is not None:
         task_doc = pre_task_doc
