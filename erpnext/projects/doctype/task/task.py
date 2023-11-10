@@ -399,7 +399,7 @@ def process_handle_get_task(payload: TaskModel):
     task_doc.project = payload.project
     task_doc.status = payload.status
     task_doc.priority = payload.priority
-    task_doc.parent_task = payload.parent_task
+    # task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
     task_doc.expected_time = payload.expected_time
 
@@ -410,5 +410,5 @@ def process_handle_get_task(payload: TaskModel):
         if payload.employee_name not in assigned:
             task_doc.assigned_to = f"{task_doc.assigned_to}{payload.employee_name}."
 
-    task_doc.save(ignore_permissions=True) if pre_task_doc is not None else task_doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+    task_doc.save(ignore_permissions=True) if pre_task_doc is not None else task_doc.insert(ignore_permissions=True)
     return task_doc
