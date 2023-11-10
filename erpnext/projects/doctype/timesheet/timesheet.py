@@ -558,20 +558,15 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             task_doc = process_handle_get_task(payload=TaskModel(row_num, cell))
 
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-            old_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["name", "status"], as_dict=1)
-            pre_time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id, employee = emp_name)
+            pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["name", "status"], as_dict=1)
             time_sheet_doc = frappe.new_doc("Timesheet")
-			
-            print("doc: ", old_time_sheet)
-            print("name: ", old_time_sheet.name)
-            print("status: ", old_time_sheet.status)
 
-            if pre_time_sheet_doc is not None and pre_time_sheet_doc.status == "Submitted":
-                pre_time_sheet_doc.cancel()
+            if pre_time_sheet is not None and pre_time_sheet.status == "Submitted":
+                old_time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id)
+                old_time_sheet_doc.cancel()
     
-            if pre_time_sheet_doc is not None and pre_time_sheet_doc.status != "Submitted":
-                # pre_time_sheet_doc.reload()
-                time_sheet_doc = pre_time_sheet_doc
+            if pre_time_sheet is not None and pre_time_sheet.status != "Submitted":
+                time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id)
 
             if emp_name is not None:
                 time_sheet_doc.naming_series = "TS-.YYYY.-"
