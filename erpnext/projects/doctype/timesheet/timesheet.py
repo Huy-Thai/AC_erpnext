@@ -12,10 +12,9 @@ from frappe.utils import add_to_date, flt, get_datetime, getdate, time_diff_in_h
 
 from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
-from erpnext.projects.doctype.project.project import process_handle_project_by_excel
-from erpnext.projects.doctype.task.task import process_handle_task_by_excel
+from erpnext.projects.doctype.task.task import process_handle_task_by_excel, process_handle_parent_task_by_excel
 from erpnext.utilities.ms_graph import (
-    EXCEL_TASK_STATUS, EXCEL_TIME_SHEET_STATUS, TaskModel, ProjectModel,
+    EXCEL_TASK_STATUS, EXCEL_TIME_SHEET_STATUS, TaskModel, ParentTaskModel,
 	handle_get_data_raws, update_column_excel_file,
 	hash_str_8_dig, split_str_get_key, mapping_cell_with_dates_raw )
 
@@ -544,24 +543,23 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
 
-            if cell["B"] == "P":
-                process_handle_project_by_excel(project_code, ms_access_token, body_query, ProjectModel(row_num, cell))
-                continue
+            parent_task = process_handle_parent_task_by_excel(
+				project_code, ms_access_token, body_query, ParentTaskModel(row_num, cell))
 
             task = cell["O"]
             activity_code = cell["N"]
             employee_name = cell["M"]
             progress = cell["L"].replace("%", "")
-            task_status = EXCEL_TASK_STATUS[cell["P"]]
 
-            if employee_name == "": continue
-            new_key = f"{project_code};{employee_name};{progress};{activity_code};{task};{date_string}"
+            if employee_name == "" or cell["B"] == "P": continue
+            new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
 
             if prev_hash_key == new_hash_key: continue
-            task_doc = process_handle_task_by_excel(payload=TaskModel(row_num, cell))
+            task_doc = process_handle_task_by_excel(payload=TaskModel(row_num, cell, parent_task))
 
+            task_status = EXCEL_TASK_STATUS[cell["P"]]
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
             time_sheet_doc = frappe.new_doc("Timesheet")

@@ -12,12 +12,12 @@ from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getda
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
-from erpnext.utilities.ms_graph import TaskModel
+from erpnext.utilities.ms_graph import (
+	TaskModel, ParentTaskModel, update_column_excel_file, hash_str_8_dig, split_str_get_key )
 
 
 class CircularReferenceError(frappe.ValidationError):
 	pass
-
 
 class Task(NestedSet):
 	nsm_parent_field = "parent_task"
@@ -386,6 +386,31 @@ def add_multiple_tasks(data, parent):
 
 def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
+	
+
+def process_handle_parent_task_by_excel(project_code, ms_access_token, body_query, payload: ParentTaskModel):
+    parent_task_doc = frappe.new_doc("Task")
+    prev_hash_key, parent_task_id = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
+    new_key = f"{payload.col_number};{project_code};{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
+    new_hash_key = hash_str_8_dig(new_key)
+
+    if prev_hash_key == new_hash_key and parent_task_id != "":
+        return parent_task_id
+
+    if prev_hash_key != new_hash_key and parent_task_id != "":
+        parent_task_doc = frappe.get_doc("Task", parent_task_id)
+	
+    parent_task_doc.task_number = payload.col_number
+    parent_task_doc.subject = payload.task_name
+    parent_task_doc.project = project_code
+    parent_task_doc.expected_start_date = payload.expected_start_date
+    parent_task_doc.expected_end_date = payload.expected_end_date
+    parent_task_doc.new_end_date = payload.new_end_date
+    parent_task_doc.save() if parent_task_id != "" else parent_task_doc.insert()
+
+    A_column_value = f"{new_hash_key}--{parent_task_doc.name}"
+    update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
+    return parent_task_doc.name
 
 
 def process_handle_task_by_excel(payload: TaskModel):
@@ -399,7 +424,7 @@ def process_handle_task_by_excel(payload: TaskModel):
     task_doc.project = payload.project
     task_doc.status = payload.status
     task_doc.priority = payload.priority
-    # task_doc.parent_task = payload.parent_task
+    task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
     task_doc.expected_time = payload.expected_time
 

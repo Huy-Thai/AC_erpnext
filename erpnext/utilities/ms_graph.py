@@ -11,31 +11,62 @@ _TENANT_ID = "acfde157-8636-4952-b4e3-ed8fd8e274e9"
 _CLIENT_ID = "c9eb157c-a854-4438-aca2-0a72b6866c8f"
 _CLIENT_SECRET = "T4E8Q~7fpSTGKCoTxeg0_ss11LJYOaQ-McwRobAi"
 _CACHE_EXPIRED = 432000 # 5 day
+EXCEL_TASK_PRIORITY = {
+    "": "Medium",
+    "1_Urgen": "Urgent",
+    "2_Important": "High",
+    "3_Medium": "Medium",
+    "4_Low": "Low",
+}
+EXCEL_TYPE_PARENT_TASK = {
+    "": "Other",
+    "0_Pre CO": "Pre Concept",
+    "1_CO": "Concept",
+    "2_BD": "Basic Design",
+    "3_DD": "Design Developemt",
+    "4_TD": "Tender Doc",
+    "5_CD": "Construction",
+    "6_AU": "Authorship",
+    "7_Other": "Other",
+}
+EXCEL_TASK_STATUS = {
+    "": "Open",
+    "1_Open": "Open",
+    "2_In progress": "In Progress",
+    "3_Pending": "Pending",
+    "4_Cancel": "Cancel",
+    "5_Done": "Done",
+    "6_Review": "Review",
+}
+EXCEL_TIME_SHEET_STATUS = {
+    "": "Draft",
+    "Open": "Draft",
+    "In Progress": "Draft",
+    "Pending": "Draft",
+    "Review": "Draft",
+    "Done": "Submitted",
+    "Cancel": "Cancelled",
+}
 
-EXCEL_PARENT_TASK = { "": None, "0_Pre CO": "31c7e0fca6", "1_CO": "8c0ce783ba", "2_BD": "b493e1ee7e", "3_DD": "ca095b7007", "4_TD": "0216871bc3", "5_CD": "78079e408a", "6_AU": "7b281811b0", "7_Other": "e4705bc9f2" }
-EXCEL_TASK_PRIORITY = { "": "Medium", "1_Urgen": "Urgent", "2_Important": "High", "3_Medium": "Medium", "4_Low": "Low" }
-EXCEL_TASK_STATUS = { "": "Open", "1_Open": "Open", "2_In progress": "In Progress", "3_Pending": "Pending", "4_Cancel": "Cancel", "5_Done": "Done", "6_Review": "Review" }
-EXCEL_TIME_SHEET_STATUS = { "": "Draft", "Open": "Draft", "In Progress": "Draft", "Pending": "Draft", "Review": "Draft", "Done": "Submitted", "Cancel": "Cancelled" }
 
-
-class ProjectModel:
+class ParentTaskModel:
     def __init__(self, num, cell):
         self.col_number = num
         self.prev_hash_key = cell["A"]
+        self.task_name = EXCEL_TYPE_PARENT_TASK[cell["H"]]
         self.expected_start_date = convert_str_to_date_object(cell["E"])
         self.expected_end_date = convert_str_to_date_object(cell["F"])
         self.new_end_date = convert_str_to_date_object(cell["G"])
 
 
 class TaskModel:
-    def __init__(self, num, cell):
+    def __init__(self, num, cell, parent_task=None):
         assert cell["C"] != "", "Value Cell C is required"
         assert cell["O"] != "", "Value Cell O is required"
 
         expected_time = float(cell["I"]) if cell["I"] != '' else 0.0
         task_status = EXCEL_TASK_STATUS[cell["P"]]
         task_priority = EXCEL_TASK_PRIORITY[cell["K"]]
-        parent_task = EXCEL_PARENT_TASK[cell["H"]]
 
         self.task_number = num
         self.subject = cell["O"]

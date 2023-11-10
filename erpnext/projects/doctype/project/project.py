@@ -17,7 +17,6 @@ from erpnext.controllers.queries import get_filters_cond
 from erpnext.controllers.website_list_for_contact import get_customers_suppliers
 from erpnext.setup.doctype.holiday_list.holiday_list import is_holiday
 
-from erpnext.utilities.ms_graph import ( ProjectModel, update_column_excel_file, hash_str_8_dig, split_str_get_key )
 
 class Project(Document):
 	def onload(self):
@@ -696,17 +695,3 @@ def get_holiday_list(company=None):
 
 def get_users_email(doc):
 	return [d.email for d in doc.users if frappe.db.get_value("User", d.user, "enabled")]
-
-
-def process_handle_project_by_excel(project_code, ms_access_token, body_query, payload: ProjectModel):
-	frappe.db.set_value("Project", project_code, {
-		"expected_start_date": payload.expected_start_date,
-		"expected_end_date": payload.expected_end_date,
-		"new_end_date": payload.new_end_date,
-	})
-
-	new_key = f"{project_code};{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
-	new_hash_key = hash_str_8_dig(new_key)
-
-	if payload.prev_hash_key != new_hash_key:
-		update_column_excel_file(ms_access_token, body_query, payload.col_number, new_hash_key)
