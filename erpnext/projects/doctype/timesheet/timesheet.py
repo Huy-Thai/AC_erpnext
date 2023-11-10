@@ -560,6 +560,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
             pre_time_sheet_doc = frappe.get_doc(doctype = "Timesheet", name = time_sheet_id, employee = emp_name)
             time_sheet_doc = frappe.new_doc("Timesheet")
+			
+            print("status: ", pre_time_sheet_doc.status)
 
             if pre_time_sheet_doc is not None and pre_time_sheet_doc.status == "Submitted":
                 pre_time_sheet_doc.reload()
