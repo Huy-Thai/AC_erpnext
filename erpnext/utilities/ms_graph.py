@@ -54,9 +54,9 @@ class ParentTaskModel:
         self.col_number = num
         self.prev_hash_key = cell["A"]
         self.task_name = EXCEL_TYPE_PARENT_TASK[cell["H"]]
-        self.expected_start_date = convert_str_to_date_object(cell["E"])
-        self.expected_end_date = convert_str_to_date_object(cell["F"])
-        self.new_end_date = convert_str_to_date_object(cell["G"])
+        self.expected_start_date = convert_str_to_date_object(cell["E"], to_str=True)
+        self.expected_end_date = convert_str_to_date_object(cell["F"], to_str=True)
+        self.new_end_date = convert_str_to_date_object(cell["G"], to_str=True)
         self.priority = "Medium"
 
 
@@ -251,7 +251,7 @@ def convert_date_to_datetime(date):
     return new_datetime
 
 
-def convert_str_to_date_object(raw, is_abb_month=False):
+def convert_str_to_date_object(raw, is_abb_month=False, to_str=False):
     try:
         # is_abb_month True mean is abbreviated month Jan, Feb, Mar,..., Dec --> 2-July-23
         # else Date of the month 1,2,3,...,31 --> 8/5/22
@@ -260,6 +260,7 @@ def convert_str_to_date_object(raw, is_abb_month=False):
         regex = "%d-%b-%Y" if is_abb_month else "%m/%d/%Y"
         date_str = raw[:-2] + f"20{raw[-2:]}"
         date_object = datetime.strptime(date_str, regex)
+        if to_str: return str(date_object)
         return date_object
     except ValueError as err:
         print(f"Convert string to date object failed with: {err}")

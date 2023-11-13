@@ -400,6 +400,8 @@ def process_handle_parent_task_by_excel(project_code, ms_access_token, body_quer
     else:
         parent_task_doc = frappe.get_doc(doctype = "Task", subject = payload.task_name, project = project_code, is_group = "1")
 
+    parent_task_doc.task_number = parent_task_doc.task_number
+    parent_task_doc.priority = parent_task_doc.priority
     parent_task_doc.expected_start_date = payload.expected_start_date
     parent_task_doc.expected_end_date = payload.expected_end_date
     parent_task_doc.new_end_date = payload.new_end_date
