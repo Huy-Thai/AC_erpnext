@@ -51,12 +51,16 @@ EXCEL_TIME_SHEET_STATUS = {
 
 class ParentTaskModel:
     def __init__(self, num, cell):
+        expected_start_date = convert_str_to_date_object(cell["E"])
+        expected_end_date = convert_str_to_date_object(cell["F"])
+        new_end_date = convert_str_to_date_object(cell["G"])
+
         self.col_number = num
         self.prev_hash_key = cell["A"]
         self.task_name = EXCEL_TYPE_PARENT_TASK[cell["H"]]
-        self.expected_start_date = convert_str_to_date_object(cell["E"]).date()
-        self.expected_end_date = convert_str_to_date_object(cell["F"]).date()
-        self.new_end_date = convert_str_to_date_object(cell["G"]).date()
+        self.expected_start_date = expected_start_date.date() if expected_start_date is not None else expected_start_date
+        self.expected_end_date = expected_end_date.date() if expected_end_date is not None else expected_end_date
+        self.new_end_date = new_end_date.date() if new_end_date is not None else new_end_date
         self.priority = "Medium"
 
 
