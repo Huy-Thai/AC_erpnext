@@ -556,6 +556,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 				}, ["name"])
 
             if cell["B"] == "P":
+                print(project_code)
+                print(parent_task)
                 process_handle_parent_task_by_excel(
                     project_code,
 					parent_task,
