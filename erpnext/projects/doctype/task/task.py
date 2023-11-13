@@ -421,9 +421,9 @@ def process_handle_task_by_excel(payload: TaskModel):
     task_doc.project = payload.project
     task_doc.status = payload.status
     task_doc.priority = payload.priority
-    task_doc.parent_task = payload.parent_task
     task_doc.progress = payload.progress
     task_doc.expected_time = payload.expected_time
+    if payload.parent_task is not None: task_doc.parent_task = payload.parent_task
 
     if task_doc.assigned_to is None:
         task_doc.assigned_to = f"{payload.employee_name}."
