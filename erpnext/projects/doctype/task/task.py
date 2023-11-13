@@ -404,7 +404,7 @@ def process_handle_parent_task_by_excel(project_code, parent_task_id, ms_access_
     )
     parent_task_doc.save()
 
-    A_column_value = f"{new_hash_key}--{parent_task_doc.name}"
+    A_column_value = f"{new_hash_key}--{parent_task_id}"
     update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
     return
 
