@@ -394,12 +394,13 @@ def process_handle_parent_task_by_excel(project_code, ms_access_token, body_quer
     new_key = f"{payload.col_number};{project_code};{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
     new_hash_key = hash_str_8_dig(new_key)
 
-    if prev_hash_key == new_hash_key and parent_task_id != "":
-        return parent_task_id
+    if parent_task_id != "":
+        if prev_hash_key == new_hash_key:
+            return parent_task_id
+        else:
+            prev_parent_task_doc = frappe.get_doc("Task", parent_task_id)
+            parent_task_doc = prev_parent_task_doc
 
-    if prev_hash_key != new_hash_key and parent_task_id != "":
-        parent_task_doc = frappe.get_doc("Task", parent_task_id)
-	
     parent_task_doc.task_number = payload.col_number
     parent_task_doc.subject = payload.task_name
     parent_task_doc.project = project_code

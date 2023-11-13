@@ -543,15 +543,19 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
 
-            parent_task = process_handle_parent_task_by_excel(project_code, ms_access_token, body_query, ParentTaskModel(row_num, cell))
-            if cell["B"] == "P": continue
+            parent_task = process_handle_parent_task_by_excel(
+                project_code,
+                ms_access_token,
+                body_query,
+                ParentTaskModel(row_num, cell),
+            )
 
             task = cell["O"]
             activity_code = cell["N"]
             employee_name = cell["M"]
             progress = cell["L"].replace("%", "")
 
-            if employee_name == "": continue
+            if employee_name == "" or cell["B"] == "P": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
@@ -603,8 +607,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
 
 def process_handle_timesheet_from_excel_team_2_q4():
-    num_start=6
-    num_end=600
+    num_start=11
+    num_end=16
     date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
