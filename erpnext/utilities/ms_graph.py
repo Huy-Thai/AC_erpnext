@@ -54,9 +54,9 @@ class ParentTaskModel:
         self.col_number = num
         self.prev_hash_key = cell["A"]
         self.task_name = EXCEL_TYPE_PARENT_TASK[cell["H"]]
-        self.expected_start_date = convert_str_to_date_object(cell["E"], to_str=True)
-        self.expected_end_date = convert_str_to_date_object(cell["F"], to_str=True)
-        self.new_end_date = convert_str_to_date_object(cell["G"], to_str=True)
+        self.expected_start_date = convert_str_to_date_object(cell["E"])
+        self.expected_end_date = convert_str_to_date_object(cell["F"])
+        self.new_end_date = convert_str_to_date_object(cell["G"])
         self.priority = "Medium"
 
 

@@ -555,6 +555,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
             if cell["B"] == "P" and parent_task is not None:
                 parent_payload = ParentTaskModel(row_num, cell)
+                print(parent_payload.expected_start_date)
                 parent_task_doc = frappe.get_doc("Task", parent_task)
                 parent_task_doc.update(
                     dict(
@@ -564,6 +565,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                     )
                 )
                 parent_task_doc.save()
+                print("updateee")
                 # process_handle_parent_task_by_excel(
                 #     project_code,
                 #     ms_access_token,
