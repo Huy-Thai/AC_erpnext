@@ -555,13 +555,12 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
             if cell["B"] == "P" and parent_task is not None:
                 parent_payload = ParentTaskModel(row_num, cell)
-                print(parent_payload.expected_start_date)
                 parent_task_doc = frappe.get_doc("Task", parent_task)
                 parent_task_doc.update(
                     dict(
-						expected_start_date = parent_payload.expected_start_date,
-                        expected_end_date = parent_payload.expected_end_date,
-                        new_end_date = parent_payload.new_end_date,
+						expected_start_date = '20-09-2023',
+                        expected_end_date = '21/10/2023',
+                        new_end_date = '2023-10-25',
                     )
                 )
                 parent_task_doc.save()
