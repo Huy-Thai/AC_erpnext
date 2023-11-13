@@ -395,16 +395,16 @@ def process_handle_parent_task_by_excel(project_code, ms_access_token, body_quer
 
     if prev_hash_key == new_hash_key: return
 
-    if parent_task_id != "":
-        parent_task_doc = frappe.get_doc("Task", parent_task_id)
-    else:
-        parent_task_doc = frappe.get_doc(doctype = "Task", subject = payload.task_name, project = project_code, is_group = "1")
+    if parent_task_id != "": parent_task_doc = frappe.get_doc("Task", parent_task_id)
+    else: parent_task_doc = frappe.get_doc(doctype="Task", subject=payload.task_name, project=project_code, is_group=1)
 
-    parent_task_doc.task_number = parent_task_doc.task_number
-    parent_task_doc.priority = parent_task_doc.priority
-    parent_task_doc.expected_start_date = payload.expected_start_date
-    parent_task_doc.expected_end_date = payload.expected_end_date
-    parent_task_doc.new_end_date = payload.new_end_date
+    parent_task_doc.update(
+        dict(
+            exp_start_date=payload.expected_start_date,
+            exp_end_date=payload.expected_end_date,
+            new_end_date=payload.new_end_date,
+        )
+    )
     parent_task_doc.save()
 
     A_column_value = f"{new_hash_key}--{parent_task_doc.name}"
@@ -413,7 +413,7 @@ def process_handle_parent_task_by_excel(project_code, ms_access_token, body_quer
 
 
 def process_handle_task_by_excel(payload: TaskModel):
-    pre_task_doc = frappe.get_doc(doctype = "Task", subject = payload.subject, project = payload.project)
+    pre_task_doc = frappe.get_doc(doctype="Task", subject=payload.subject, project=payload.project)
     task_doc = frappe.new_doc("Task")
     if pre_task_doc is not None:
         task_doc = pre_task_doc
