@@ -552,15 +552,25 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 					"subject": EXCEL_TYPE_PARENT_TASK[cell["H"]],
                     "project": project_code,
 				}, ["name"])
-            print(parent_task)
-            # if cell["B"] == "P":
-            #     process_handle_parent_task_by_excel(
-            #         project_code,
-            #         ms_access_token,
-            #         body_query,
-            #         ParentTaskModel(row_num, cell),
-            #     )
-            #     continue
+
+            if cell["B"] == "P" and parent_task is not None:
+                parent_payload = ParentTaskModel(row_num, cell)
+                parent_task_doc = frappe.get_doc("Task", parent_task)
+                parent_task_doc.update(
+                    dict(
+						expected_start_date = parent_payload.expected_start_date,
+                        expected_end_date = parent_payload.expected_end_date,
+                        new_end_date = parent_payload.new_end_date,
+                    )
+                )
+                parent_task_doc.save()
+                # process_handle_parent_task_by_excel(
+                #     project_code,
+                #     ms_access_token,
+                #     body_query,
+                #     ParentTaskModel(row_num, cell),
+                # )
+                continue
 
             if employee_name == "": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{date_string}"
