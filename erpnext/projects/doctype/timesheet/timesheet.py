@@ -551,7 +551,6 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                 {
 					"subject": EXCEL_TYPE_PARENT_TASK[cell["H"]],
                     "project": project_code,
-                    "is_group ": "1",
 				}, ["name"])
             print(parent_task)
             # if cell["B"] == "P":
