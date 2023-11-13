@@ -23,7 +23,7 @@ EXCEL_TYPE_PARENT_TASK = {
     "0_Pre CO": "Pre Concept",
     "1_CO": "Concept",
     "2_BD": "Basic Design",
-    "3_DD": "Design Developemt",
+    "3_DD": "Design Development",
     "4_TD": "Tender Doc",
     "5_CD": "Construction",
     "6_AU": "Authorship",
