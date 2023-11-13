@@ -388,16 +388,13 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 	
 
-def process_handle_parent_task_by_excel(project_code, ms_access_token, body_query, payload: ParentTaskModel):
-    prev_hash_key, parent_task_id = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
+def process_handle_parent_task_by_excel(project_code, parent_task_id, ms_access_token, body_query, payload: ParentTaskModel):
+    prev_hash_key, _ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
     new_key = f"{project_code};{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
     new_hash_key = hash_str_8_dig(new_key)
 
     if prev_hash_key == new_hash_key: return
-
-    if parent_task_id != "": parent_task_doc = frappe.get_doc("Task", parent_task_id)
-    else: parent_task_doc = frappe.get_doc(doctype="Task", subject=payload.task_name, project=project_code, is_group=1)
-
+    parent_task_doc = frappe.get_doc("Task", parent_task_id)
     parent_task_doc.update(
         dict(
             exp_start_date=payload.expected_start_date,

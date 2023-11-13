@@ -61,7 +61,6 @@ class ParentTaskModel:
         self.expected_start_date = expected_start_date.date() if expected_start_date is not None else expected_start_date
         self.expected_end_date = expected_end_date.date() if expected_end_date is not None else expected_end_date
         self.new_end_date = new_end_date.date() if new_end_date is not None else new_end_date
-        self.priority = "Medium"
 
 
 class TaskModel:
