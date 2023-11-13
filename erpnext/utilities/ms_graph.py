@@ -261,7 +261,7 @@ def convert_str_to_date_object(raw, is_abb_month=False, to_str=False):
         date_str = raw[:-2] + f"20{raw[-2:]}"
         date_object = datetime.strptime(date_str, regex)
         if to_str: return str(date_object)
-        return date_object
+        return date_object.date()
     except ValueError as err:
         print(f"Convert string to date object failed with: {err}")
         return None
