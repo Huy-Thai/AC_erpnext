@@ -393,7 +393,10 @@ def process_handle_parent_task_by_excel(project_code, parent_task_id, ms_access_
     new_key = f"{project_code};{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
     new_hash_key = hash_str_8_dig(new_key)
 
-    if prev_hash_key == new_hash_key: return
+    if prev_hash_key == new_hash_key:
+        print("1")
+        return
+    print("2")
     if parent_task_id is not None:
         parent_task_doc = frappe.get_doc("Task", parent_task_id)
         parent_task_doc.update(
