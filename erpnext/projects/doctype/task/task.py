@@ -394,19 +394,20 @@ def process_handle_parent_task_by_excel(project_code, parent_task_id, ms_access_
     new_hash_key = hash_str_8_dig(new_key)
 
     if prev_hash_key == new_hash_key: return
-    parent_task_doc = frappe.get_doc("Task", parent_task_id)
-    parent_task_doc.update(
-        dict(
-            exp_start_date=payload.expected_start_date,
-            exp_end_date=payload.expected_end_date,
-            new_end_date=payload.new_end_date,
+    if parent_task_id is not None:
+        parent_task_doc = frappe.get_doc("Task", parent_task_id)
+        parent_task_doc.update(
+            dict(
+                exp_start_date=payload.expected_start_date,
+                exp_end_date=payload.expected_end_date,
+                new_end_date=payload.new_end_date,
+            )
         )
-    )
-    parent_task_doc.save()
+        parent_task_doc.save()
 
-    A_column_value = f"{new_hash_key}--{parent_task_id}"
-    update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
-    return
+        A_column_value = f"{new_hash_key}--{parent_task_id}"
+        update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
+        return
 
 
 def process_handle_task_by_excel(payload: TaskModel):
