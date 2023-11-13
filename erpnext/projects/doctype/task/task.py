@@ -403,11 +403,13 @@ def process_handle_parent_task_by_excel(project_code, ms_access_token, body_quer
     parent_task_doc.task_number = payload.col_number
     parent_task_doc.subject = payload.task_name
     parent_task_doc.project = project_code
+    parent_task_doc.priority = payload.priority
     parent_task_doc.expected_start_date = payload.expected_start_date
     parent_task_doc.expected_end_date = payload.expected_end_date
     parent_task_doc.new_end_date = payload.new_end_date
-    parent_task_doc.save() if parent_task_id != "" else parent_task_doc.insert()
+    parent_task_doc.is_group = "1"
 
+    parent_task_doc.save() if parent_task_id != "" else parent_task_doc.insert()
     A_column_value = f"{new_hash_key}--{parent_task_doc.name}"
     update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
     return parent_task_doc.name

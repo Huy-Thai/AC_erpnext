@@ -57,6 +57,7 @@ class ParentTaskModel:
         self.expected_start_date = convert_str_to_date_object(cell["E"])
         self.expected_end_date = convert_str_to_date_object(cell["F"])
         self.new_end_date = convert_str_to_date_object(cell["G"])
+        self.priority = "Medium"
 
 
 class TaskModel:

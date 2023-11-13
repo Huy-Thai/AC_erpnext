@@ -543,15 +543,15 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
 
-            parent_task = process_handle_parent_task_by_excel(
-				project_code, ms_access_token, body_query, ParentTaskModel(row_num, cell))
+            parent_task = process_handle_parent_task_by_excel(project_code, ms_access_token, body_query, ParentTaskModel(row_num, cell))
+            if cell["B"] == "P": continue
 
             task = cell["O"]
             activity_code = cell["N"]
             employee_name = cell["M"]
             progress = cell["L"].replace("%", "")
 
-            if employee_name == "" or cell["B"] == "P": continue
+            if employee_name == "": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
