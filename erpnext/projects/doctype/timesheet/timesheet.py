@@ -552,6 +552,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 	            {
 					"subject": EXCEL_TYPE_PARENT_TASK[cell["H"]],
 					"project": project_code,
+					"is_group": 1,
 				}, ["name"])
 
             if cell["B"] == "P":
@@ -617,7 +618,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
 def process_handle_timesheet_from_excel_team_2_q4():
     num_start=6
-    num_end=600
+    num_end=27
     date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
