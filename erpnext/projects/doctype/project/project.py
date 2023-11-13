@@ -77,6 +77,7 @@ class Project(Document):
 		return frappe.get_doc(
 			dict(
 				doctype="Task",
+				task_number=task_details.task_number,
 				subject=task_details.subject,
 				project=self.name,
 				status="Open",
