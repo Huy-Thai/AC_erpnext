@@ -557,7 +557,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
             if parent_task is not None and cell["B"] == "P":
                 process_handle_parent_task_by_excel(
 					parent_task, ms_access_token, body_query, ParentTaskModel(row_num, cell))
-			
+                continue
+
             if employee_name == "" or task == "": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)

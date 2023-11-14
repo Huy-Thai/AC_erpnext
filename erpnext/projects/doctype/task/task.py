@@ -408,6 +408,7 @@ def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_qu
         )
     )
     parent_task_doc.save()
+    frappe.db.commit()
 
     A_column_value = f"{new_hash_key}--{parent_task}"
     update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
