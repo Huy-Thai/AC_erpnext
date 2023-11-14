@@ -533,7 +533,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
     for sheet in time_sheets_raw:
         if sheet is None: continue
-
+        print(sheet)
         for row_num in sheet:
             cell = sheet[row_num]
             if cell is None or cell["B"] == "Pa" or cell["O"] == "": continue
