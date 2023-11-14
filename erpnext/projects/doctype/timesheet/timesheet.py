@@ -612,7 +612,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
 def process_handle_timesheet_from_excel_team_2_q4():
     num_start=6
-    num_end=80
+    num_end=500
     date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
@@ -623,7 +623,7 @@ def process_handle_timesheet_from_excel_team_2_q4():
 
 def process_handle_timesheet_from_excel_team_civil_q4():
     num_start=6
-    num_end=600
+    num_end=500
     date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,839d16c5-c2a9-434c-9696-0101f0f021f2,fa307a92-13ac-4b44-be8e-03bfb18ab2d9',
@@ -634,7 +634,7 @@ def process_handle_timesheet_from_excel_team_civil_q4():
 
 def process_handle_timesheet_from_excel_cad():
     num_start=6
-    num_end=600
+    num_end=500
     date_row_num=3
     body_query={
         'site_id': 'aconsvn.sharepoint.com,c98ba12c-b5dd-4dc4-b11e-33fe796a2b49,3ceb4e77-07b4-4ca8-bb12-e6ffaeeb83c5',

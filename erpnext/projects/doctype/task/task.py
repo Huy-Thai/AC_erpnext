@@ -389,7 +389,7 @@ def on_doctype_update():
 	
 
 def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_query, payload: ParentTaskModel):
-    prev_hash_key, parent_task = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
+    prev_hash_key, _ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
     new_key = f"{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
     new_hash_key = hash_str_8_dig(new_key)
 
@@ -400,6 +400,7 @@ def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_qu
                 exp_start_date=payload.expected_start_date,
                 exp_end_date=payload.expected_end_date,
                 new_end_date=payload.new_end_date,
+				expected_time=payload.expected_time,
             )
         )
         parent_task_doc.save()
@@ -407,9 +408,9 @@ def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_qu
 
         A_column_value = f"{new_hash_key}--{parent_task_id}"
         update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
-        return parent_task_id
+        return
 
-    return parent_task
+    return
 
 def process_handle_task_by_excel(payload: TaskModel):
     pre_task_doc = frappe.get_doc(doctype="Task", subject=payload.subject, project=payload.project)

@@ -54,6 +54,7 @@ class ParentTaskModel:
         expected_start_date = convert_str_to_date_object(cell["E"])
         expected_end_date = convert_str_to_date_object(cell["F"])
         new_end_date = convert_str_to_date_object(cell["G"])
+        expected_time = float(cell["I"]) if cell["I"] != "" else 0.0
 
         self.col_number = num
         self.prev_hash_key = cell["A"]
@@ -61,6 +62,7 @@ class ParentTaskModel:
         self.expected_start_date = expected_start_date.date() if expected_start_date is not None else expected_start_date
         self.expected_end_date = expected_end_date.date() if expected_end_date is not None else expected_end_date
         self.new_end_date = new_end_date.date() if new_end_date is not None else new_end_date
+        self.expected_time = expected_time
 
 
 class TaskModel:
@@ -68,7 +70,7 @@ class TaskModel:
         assert cell["C"] != "", "Value Cell C is required"
         assert cell["O"] != "", "Value Cell O is required"
 
-        expected_time = float(cell["I"]) if cell["I"] != '' else 0.0
+        expected_time = float(cell["I"]) if cell["I"] != "" else 0.0
         task_status = EXCEL_TASK_STATUS[cell["P"]]
         task_priority = EXCEL_TASK_PRIORITY[cell["K"]]
 
