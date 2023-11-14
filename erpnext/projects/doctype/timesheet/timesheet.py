@@ -555,10 +555,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 					"is_group": 1,
 				}, ["name"])
 
-            if parent_task is not None:
-                print(project_code)
-                print(parent_task)
-                process_handle_parent_task_by_excel(
+            if parent_task is not None and cell["B"] == "P":
+                parent_task = process_handle_parent_task_by_excel(
                     project_code,
 					parent_task,
                     ms_access_token,

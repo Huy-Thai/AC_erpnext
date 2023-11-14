@@ -388,29 +388,26 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 	
 
-def process_handle_parent_task_by_excel(project_code, parent_task_id, ms_access_token, body_query, payload: ParentTaskModel):
-    prev_hash_key, _ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
-    new_key = f"{project_code};{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
+def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_query, payload: ParentTaskModel):
+    prev_hash_key, parent_task = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
+    new_key = f"{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
     new_hash_key = hash_str_8_dig(new_key)
 
-    if prev_hash_key == new_hash_key:
-        print("1")
-        return
-    print("2")
-    if parent_task_id is not None:
-        parent_task_doc = frappe.get_doc("Task", parent_task_id)
-        parent_task_doc.update(
-            dict(
-                exp_start_date=payload.expected_start_date,
-                exp_end_date=payload.expected_end_date,
-                new_end_date=payload.new_end_date,
-            )
-        )
-        parent_task_doc.save()
-
+    if prev_hash_key == "":
         A_column_value = f"{new_hash_key}--{parent_task_id}"
         update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
-        return
+        return parent_task_id
+
+    if prev_hash_key == new_hash_key: return parent_task
+    frappe.db.set_value("Task", parent_task, {
+        "exp_start_date": payload.expected_start_date,
+        "exp_end_date": payload.expected_end_date,
+        "new_end_date": payload.new_end_date,
+    })
+
+    A_column_value = f"{new_hash_key}--{parent_task}"
+    update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
+    return parent_task
 
 
 def process_handle_task_by_excel(payload: TaskModel):
