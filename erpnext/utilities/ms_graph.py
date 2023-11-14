@@ -19,15 +19,15 @@ EXCEL_TASK_PRIORITY = {
     "4_Low": "Low",
 }
 EXCEL_TYPE_PARENT_TASK = {
-    "": "Other",
-    "0_Pre CO": "Pre Concept",
-    "1_CO": "Concept",
-    "2_BD": "Basic Design",
-    "3_DD": "Design Development",
-    "4_TD": "Tender Doc",
-    "5_CD": "Construction",
-    "6_AU": "Authorship",
-    "7_Other": "Other",
+    "": "7",
+    "0_Pre CO": "0",
+    "1_CO": "1",
+    "2_BD": "2",
+    "3_DD": "3",
+    "4_TD": "4",
+    "5_CD": "5",
+    "6_AU": "6",
+    "7_Other": "7",
 }
 EXCEL_TASK_STATUS = {
     "": "Open",
