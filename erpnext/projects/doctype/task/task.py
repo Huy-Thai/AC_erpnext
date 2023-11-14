@@ -399,16 +399,19 @@ def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_qu
         return parent_task_id
 
     if prev_hash_key == new_hash_key: return parent_task
-    frappe.db.set_value("Task", parent_task, {
-        "exp_start_date": payload.expected_start_date,
-        "exp_end_date": payload.expected_end_date,
-        "new_end_date": payload.new_end_date,
-    })
+    parent_task_doc = frappe.get_doc("Task", parent_task)
+    parent_task_doc.update(
+        dict(
+            exp_start_date=payload.expected_start_date,
+            exp_end_date=payload.expected_end_date,
+            new_end_date=payload.new_end_date,
+        )
+    )
+    parent_task_doc.save()
 
     A_column_value = f"{new_hash_key}--{parent_task}"
     update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
     return parent_task
-
 
 def process_handle_task_by_excel(payload: TaskModel):
     pre_task_doc = frappe.get_doc(doctype="Task", subject=payload.subject, project=payload.project)
