@@ -556,13 +556,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 				}, ["name"])
 
             if parent_task is not None and cell["B"] == "P":
-                parent_task = process_handle_parent_task_by_excel(
-                    project_code,
-					parent_task,
-                    ms_access_token,
-                    body_query,
-                    ParentTaskModel(row_num, cell),
-                )
+                parent_task = process_handle_parent_task_by_excel(parent_task, ms_access_token, body_query, ParentTaskModel(row_num, cell))
 			
             if employee_name == "": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{date_string}"
