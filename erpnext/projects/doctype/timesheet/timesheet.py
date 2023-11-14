@@ -536,7 +536,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
         print(sheet)
         for row_num in sheet:
             cell = sheet[row_num]
-            if cell is None or cell["B"] == "Pa" or cell["O"] == "": continue
+            type_column = cell["B"]
+            if cell is None or type_column == "Pa": continue
             dates, date_string = mapping_cell_with_dates_raw(cell, dates_raw)
 
             project_code = cell["C"]
@@ -555,12 +556,11 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 					"is_group": 1,
 				}, ["name"])
 
-            if parent_task is not None and cell["B"] == "P":
-                print(parent_task)
+            if parent_task is not None and type_column == "P":
                 parent_task = process_handle_parent_task_by_excel(
 					parent_task, ms_access_token, body_query, ParentTaskModel(row_num, cell))
 			
-            if employee_name == "": continue
+            if employee_name == "" or task == "": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
             prev_hash_key, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
