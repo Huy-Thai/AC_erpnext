@@ -389,7 +389,7 @@ def on_doctype_update():
 	
 
 def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_query, payload: ParentTaskModel):
-    prev_hash_key, _ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
+    prev_hash_key, _, __ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
     new_key = f"{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
     new_hash_key = hash_str_8_dig(new_key)
 
@@ -412,27 +412,35 @@ def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_qu
 
     return
 
-def process_handle_task_by_excel(payload: TaskModel):
-    pre_task_doc = frappe.get_doc(doctype="Task", subject=payload.subject, project=payload.project)
-    task_doc = frappe.new_doc("Task")
-    if pre_task_doc is not None:
-        task_doc = pre_task_doc
+def process_handle_task_by_excel(task_id, payload: TaskModel):
+	if task_id == "":
+		new_task_doc = frappe.new_doc("Task")
+		new_task_doc.task_number = payload.task_number
+		new_task_doc.subject = payload.subject
+		new_task_doc.project = payload.project
+		new_task_doc.status = payload.status
+		new_task_doc.priority = payload.priority
+		new_task_doc.progress = payload.progress
+		new_task_doc.expected_time = payload.expected_time
+		new_task_doc.parent_task = payload.parent_task
+		new_task_doc.assigned_to = payload.employee_name
+		new_task_doc.insert()
+		frappe.db.commit()
+		return new_task_doc.name
 
-    task_doc.task_number = payload.task_number
-    task_doc.subject = payload.subject
-    task_doc.project = payload.project
-    task_doc.status = payload.status
-    task_doc.priority = payload.priority
-    task_doc.progress = payload.progress
-    task_doc.expected_time = payload.expected_time
-    task_doc.parent_task = payload.parent_task
-
-    if task_doc.assigned_to is None:
-        task_doc.assigned_to = f"{payload.employee_name}."
-    else:
-        assigned = task_doc.assigned_to.split(".")
-        if payload.employee_name not in assigned:
-            task_doc.assigned_to = f"{task_doc.assigned_to}{payload.employee_name}."
-
-    task_doc.save() if pre_task_doc is not None else task_doc.insert()
-    return task_doc
+	task_doc = frappe.get_doc("Task", task_id)
+	task_doc.update(
+		dict(
+			task_number=payload.task_number,
+			subject=payload.subject,
+			project=payload.project,
+			status=payload.status,
+			priority=payload.priority,
+			progress=payload.progress,
+			expected_time=payload.expected_time,
+			parent_task=payload.parent_task,
+		)
+	)
+	task_doc.save()
+	frappe.db.commit()
+	return task_id

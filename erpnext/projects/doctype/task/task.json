@@ -156,7 +156,7 @@
   },
   {
     "fieldname": "assigned_to",
-    "fieldtype": "Text",
+    "fieldtype": "Data",
     "ignore_user_permissions": 1,
     "in_global_search": 1,
     "label": "Assigned To"

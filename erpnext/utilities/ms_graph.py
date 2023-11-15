@@ -47,6 +47,12 @@ EXCEL_TIME_SHEET_STATUS = {
     "Done": "Submitted",
     "Cancel": "Cancelled",
 }
+EXCEL_TIME_SHEET_DOC_STATUS = {
+    "": 0,
+    "Draft": 0,
+    "Submitted": 1,
+    "Cancelled": 2,
+}
 
 
 class ParentTaskModel:
@@ -303,13 +309,14 @@ def mapping_cell_with_dates_raw(cell, dates_raw):
 
 
 def split_str_get_key(input_data, char_split):
-    if input_data == "" or input_data == None: return "", ""
+    if input_data == "" or input_data == None: return "", "", ""
 
     results = input_data.split(char_split)
     index_0 = results[0] if len(results) >= 1 else ""
     index_1 = results[1] if len(results) >= 2 else ""
+    index_2 = results[2] if len(results) >= 3 else ""
 
-    return index_0, index_1
+    return index_0, index_1, index_2
 
 
 async def handle_get_data_raws(body_query, num_start, num_end, date_row_num):
