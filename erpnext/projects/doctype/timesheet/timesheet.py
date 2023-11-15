@@ -612,6 +612,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                 time_sheet_doc.update(
                     dict(
                         parent_project=project_code,
+                        employee=emp_name,
                         status=excel_ts_status,
                         docstatus=excel_ts_doc_status,
 						time_logs=[],

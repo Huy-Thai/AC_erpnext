@@ -264,11 +264,11 @@ def convert_date_to_datetime(date):
 
 def convert_str_to_date_object(raw, is_abb_month=False, to_str=False):
     try:
-        # is_abb_month True mean is abbreviated month Jan, Feb, Mar,..., Dec --> 2-July-23
+        # is_abb_month True mean is abbreviated month Jan, Feb, Mar,..., Dec --> July-2-23
         # else Date of the month 1,2,3,...,31 --> 8/5/22
         if raw is None or raw == "": return None
 
-        regex = "%d-%b-%Y" if is_abb_month else "%m/%d/%Y"
+        regex = "%b-%d-%Y" if is_abb_month else "%m/%d/%Y"
         date_str = raw[:-2] + f"20{raw[-2:]}"
         date_object = datetime.strptime(date_str, regex)
         if to_str: return str(date_object)
