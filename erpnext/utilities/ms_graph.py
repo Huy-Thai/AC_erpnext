@@ -269,8 +269,8 @@ def convert_str_to_date_object(raw, is_abb_month=False, to_str=False):
         if raw is None or raw == "": return None
 
         regex = "%b-%d-%Y" if is_abb_month else "%m/%d/%Y"
-        date_str = raw[:-2] + f"20{raw[-2:]}"
-        date_object = datetime.strptime(date_str, regex)
+        # date_str = raw[:-2] + f"20{raw[-2:]}"
+        date_object = datetime.strptime(raw, regex)
         if to_str: return str(date_object)
         return date_object
     except ValueError as err:
