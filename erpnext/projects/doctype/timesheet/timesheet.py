@@ -531,7 +531,6 @@ def create_new_timesheet(
 	project_code,
 	emp_name,
 	excel_ts_status,
-	excel_ts_doc_status,
 	excel_task_status,
 	activity_code,
 	task_doc,
@@ -541,7 +540,6 @@ def create_new_timesheet(
     time_sheet_doc.parent_project = project_code
     time_sheet_doc.employee = emp_name
     time_sheet_doc.status = excel_ts_status
-    time_sheet_doc.docstatus = excel_ts_doc_status
 
     if len(dates) > 0 and activity_code != "":
         for date, hrs in dates.items():
@@ -653,7 +651,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                 if time_sheet_id == "":
                     new_time_sheet_doc = create_new_timesheet(
 						dates, project_code, emp_name, excel_ts_status,
-						excel_ts_doc_status, excel_task_status, activity_code, task_doc,
+						excel_task_status, activity_code, task_doc,
 					)
                     A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
                     update_column_excel_file(ms_access_token, body_query, row_num, A_column)
@@ -667,7 +665,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                     })
                     new_time_sheet_doc = create_new_timesheet(
                         dates, project_code, emp_name, excel_ts_status,
-                        excel_ts_doc_status, excel_task_status, activity_code, task_doc,
+                        excel_task_status, activity_code, task_doc,
                     )
                     A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
                     update_column_excel_file(ms_access_token, body_query, row_num, A_column)
