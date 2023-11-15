@@ -262,7 +262,7 @@ def convert_date_to_datetime(date):
     return new_datetime
 
 
-def convert_str_to_date_object(raw, is_abb_month=False, to_str=False):
+def convert_str_to_date_object(raw, is_abb_month=True, to_str=False):
     try:
         # is_abb_month True mean is abbreviated month Jan, Feb, Mar,..., Dec --> July-2-23
         # else Date of the month 1,2,3,...,31 --> 8/5/22
@@ -284,7 +284,7 @@ def format_dates_with_excel_style(dates):
     result = {}
     for idx, value in enumerate(dates):
         column = excel_style(None, idx + 17)
-        result[column] = convert_str_to_date_object(value, is_abb_month=True)
+        result[column] = convert_str_to_date_object(value)
 
     return result
 
