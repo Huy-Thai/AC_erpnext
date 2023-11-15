@@ -596,8 +596,6 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                             )
 
                     new_time_sheet_doc.insert()
-                    frappe.db.commit()
-
                     A_column_value = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
                     update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
                     continue
@@ -635,11 +633,9 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                         )
 
                 task_doc.save()
-                frappe.db.commit()
-
                 A_column_value = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
                 update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
-
+    frappe.db.commit()
 
 def process_handle_timesheet_from_excel_team_2_q4():
     num_start=6
