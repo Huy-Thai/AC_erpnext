@@ -524,7 +524,84 @@ def get_list_context(context=None):
 		"get_list": get_timesheets_list,
 		"row_template": "templates/includes/timesheet/timesheet_row.html",
 	}
-    
+
+
+def create_new_timesheet(
+	dates,
+	project_code,
+	emp_name,
+	excel_ts_status,
+	excel_ts_doc_status,
+	excel_task_status,
+	activity_code,
+	task_doc,
+):
+    time_sheet_doc = frappe.new_doc("Timesheet")
+    time_sheet_doc.naming_series = "TS-.YYYY.-"
+    time_sheet_doc.parent_project = project_code
+    time_sheet_doc.employee = emp_name
+    time_sheet_doc.status = excel_ts_status
+    time_sheet_doc.docstatus = excel_ts_doc_status
+
+    if len(dates) > 0 and activity_code != "":
+        for date, hrs in dates.items():
+            time_sheet_doc.append(
+                "time_logs",
+                {
+                    "activity_type": activity_code,
+                    "from_time": date,
+                    "hours": flt(hrs),
+                    "project": project_code,
+                    "task": task_doc,
+                    "completed": excel_task_status == "Done",
+                },
+            )
+
+    time_sheet_doc.insert()
+    frappe.db.commit()
+    return time_sheet_doc
+
+
+def update_timesheet(
+	time_sheet_id,
+	dates,
+	project_code,
+	emp_name,
+	excel_ts_status,
+	excel_ts_doc_status,
+	excel_task_status,
+	activity_code,
+	task_doc,
+):
+    time_sheet_doc = frappe.get_doc("Timesheet", time_sheet_id)
+    time_sheet_doc.update(
+        dict(
+            parent_project=project_code,
+            employee=emp_name,
+            status=excel_ts_status,
+            docstatus=excel_ts_doc_status,
+            time_logs=[],
+        )
+    )
+
+    if len(dates) > 0 and activity_code != "":
+        for date, hrs in dates.items():
+            time_sheet_doc.append(
+                "time_logs",
+                {
+                    "activity_type": activity_code,
+                    "from_time": date,
+                    "hours": flt(hrs),
+                    "project": project_code,
+                    "task": task_doc,
+                    "completed": excel_task_status == "Done",
+                },
+            )
+
+    time_sheet_doc.save()
+    frappe.db.commit()
+    return time_sheet_doc
+
 
 async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num):
     data_raws = await handle_get_data_raws(body_query, num_start, num_end, date_row_num)
@@ -574,30 +651,12 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
                 task_doc = process_handle_task_by_excel(task_id, TaskModel(row_num, cell, parent_task))
                 if time_sheet_id == "":
-                    new_time_sheet_doc = frappe.new_doc("Timesheet")
-                    new_time_sheet_doc.naming_series = "TS-.YYYY.-"
-                    new_time_sheet_doc.parent_project = project_code
-                    new_time_sheet_doc.employee = emp_name
-                    new_time_sheet_doc.status = excel_ts_status
-                    new_time_sheet_doc.docstatus = excel_ts_doc_status
-
-                    if len(dates) > 0 and activity_code != "":
-                        for date, hrs in dates.items():
-                            new_time_sheet_doc.append(
-                                "time_logs",
-                                {
-                                    "activity_type": activity_code,
-                                    "from_time": date,
-                                    "hours": flt(hrs),
-                                    "project": project_code,
-                                    "task": task_doc,
-                                    "completed": excel_task_status == "Done",
-                                },
-                            )
-
-                    new_time_sheet_doc.insert()
-                    A_column_value = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-                    update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
+                    new_time_sheet_doc = create_new_timesheet(
+						dates, project_code, emp_name, excel_ts_status,
+						excel_ts_doc_status, excel_task_status, activity_code, task_doc,
+					)
+                    A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
+                    update_column_excel_file(ms_access_token, body_query, row_num, A_column)
                     continue
 
                 pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
@@ -606,36 +665,21 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                         "status": "Cancelled",
                         "docstatus": 2
                     })
-
-                time_sheet_doc = frappe.get_doc("Timesheet", time_sheet_id)
-                time_sheet_doc.update(
-                    dict(
-                        parent_project=project_code,
-                        employee=emp_name,
-                        status=excel_ts_status,
-                        docstatus=excel_ts_doc_status,
-						time_logs=[],
+                    new_time_sheet_doc = create_new_timesheet(
+                        dates, project_code, emp_name, excel_ts_status,
+                        excel_ts_doc_status, excel_task_status, activity_code, task_doc,
                     )
+                    A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
+                    update_column_excel_file(ms_access_token, body_query, row_num, A_column)
+                    continue
+
+                time_sheet_doc = update_timesheet(
+                    time_sheet_id, dates, project_code, emp_name, excel_ts_status,
+                    excel_ts_doc_status, excel_task_status, activity_code, task_doc,
                 )
+                A_column = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
+                update_column_excel_file(ms_access_token, body_query, row_num, A_column)
 
-                if len(dates) > 0 and activity_code != "":
-                    for date, hrs in dates.items():
-                        time_sheet_doc.append(
-                            "time_logs",
-                            {
-                                "activity_type": activity_code,
-                                "from_time": date,
-                                "hours": flt(hrs),
-                                "project": project_code,
-                                "task": task_doc,
-                                "completed": excel_task_status == "Done",
-                            },
-                        )
-
-                time_sheet_doc.save()
-                A_column_value = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
-                update_column_excel_file(ms_access_token, body_query, row_num, A_column_value)
-    frappe.db.commit()
 
 def process_handle_timesheet_from_excel_team_2_q4():
     num_start=6
