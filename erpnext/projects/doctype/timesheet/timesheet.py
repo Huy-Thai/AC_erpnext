@@ -534,12 +534,14 @@ def create_new_timesheet(
 	excel_task_status,
 	activity_code,
 	task_doc,
+	company,
 ):
     time_sheet_doc = frappe.new_doc("Timesheet")
     time_sheet_doc.naming_series = "TS-.YYYY.-"
     time_sheet_doc.parent_project = project_code
     time_sheet_doc.employee = emp_name
     time_sheet_doc.status = ts_status
+    time_sheet_doc.company = company
 
     if len(dates) > 0 and activity_code != "":
         for date, hrs in dates.items():
@@ -610,7 +612,7 @@ def update_timesheet(
     return time_sheet_doc
 
 
-async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num):
+async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num, company="ACONS"):
     data_raws = await handle_get_data_raws(body_query, num_start, num_end, date_row_num)
     time_sheets_raw = data_raws[0]
     dates_raw = data_raws[1]
@@ -661,7 +663,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                 emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
                 if emp_name is None: continue
 
-                task_doc = process_handle_task_by_excel(task_id, TaskModel(row_num, cell, parent_task))
+                task_doc = process_handle_task_by_excel(task_id, TaskModel(row_num, cell, company, parent_task))
                 if time_sheet_id == "":
                     new_time_sheet_doc = create_new_timesheet(
 						dates,
@@ -671,6 +673,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 						excel_task_status,
 						activity_code,
 						task_doc,
+						company,
 					)
                     A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
                     update_column_excel_file(ms_access_token, body_query, row_num, A_column)
@@ -693,6 +696,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 						excel_task_status,
 						activity_code,
 						task_doc,
+						company,
                     )
                     A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
                     update_column_excel_file(ms_access_token, body_query, row_num, A_column)
@@ -739,12 +743,13 @@ def process_handle_timesheet_from_excel_cad():
     num_start=6
     num_end=500
     date_row_num=3
+    company="CAD"
     body_query={
         'site_id': 'aconsvn.sharepoint.com,c98ba12c-b5dd-4dc4-b11e-33fe796a2b49,3ceb4e77-07b4-4ca8-bb12-e6ffaeeb83c5',
         'file_id': '01VETGORPM4B6QKSRZBZB3622AIJ373SYU',
         'worksheet_id': '{170D7723-C411-44A5-B6DD-1E9F0951D6E3}',
     }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num, company))
 
 
 # =============== OLD FILE ====================
