@@ -414,10 +414,10 @@ scheduler_events = {
         "35 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_2_q4",
 		],
-        "55 22 * * *": [
+        "45 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_cad",
 		],
-        "20 23 * * *": [
+        "55 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
 		]
 	},
