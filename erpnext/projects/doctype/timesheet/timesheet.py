@@ -555,9 +555,8 @@ def create_new_timesheet(
                 },
             )
 
-    # time_sheet_doc.insert()
     if excel_ts_status == "Submitted": time_sheet_doc.submit()
-    if excel_ts_status == "Cancelled": time_sheet_doc.cancel()
+    if excel_ts_status == "Cancelled": time_sheet_doc.save()
     frappe.db.commit()
     return time_sheet_doc
 
