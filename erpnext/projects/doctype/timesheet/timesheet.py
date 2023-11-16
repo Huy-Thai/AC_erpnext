@@ -144,7 +144,7 @@ class Timesheet(Document):
 	def validate_time_logs(self):
 		for data in self.get("time_logs"):
 			self.set_to_time(data)
-			self.validate_overlap(data)
+			# self.validate_overlap(data)
 			self.set_project(data)
 			self.validate_project(data)
 
@@ -663,7 +663,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                 emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
                 if emp_name is None: continue
 
-                task_doc = process_handle_task_by_excel(task_id, TaskModel(row_num, cell, company, parent_task))
+                task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(row_num, cell, company))
                 if time_sheet_id == "":
                     new_time_sheet_doc = create_new_timesheet(
 						dates,

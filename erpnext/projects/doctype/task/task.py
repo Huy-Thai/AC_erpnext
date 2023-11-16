@@ -412,7 +412,7 @@ def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_qu
 
     return
 
-def process_handle_task_by_excel(task_id, payload: TaskModel):
+def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
 	if task_id == "":
 		new_task_doc = frappe.new_doc("Task")
 		new_task_doc.task_number = payload.task_number
@@ -422,7 +422,7 @@ def process_handle_task_by_excel(task_id, payload: TaskModel):
 		new_task_doc.priority = payload.priority
 		new_task_doc.progress = payload.progress
 		new_task_doc.expected_time = payload.expected_time
-		new_task_doc.parent_task = payload.parent_task
+		new_task_doc.parent_task = parent_task
 		new_task_doc.assigned_to = payload.employee_name
 		new_task_doc.company = payload.company
 		new_task_doc.insert()
@@ -439,7 +439,7 @@ def process_handle_task_by_excel(task_id, payload: TaskModel):
 			priority=payload.priority,
 			progress=payload.progress,
 			expected_time=payload.expected_time,
-			parent_task=payload.parent_task,
+			parent_task=parent_task,
 		)
 	)
 	task_doc.save()
