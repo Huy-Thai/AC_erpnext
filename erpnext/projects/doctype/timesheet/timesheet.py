@@ -675,13 +675,16 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                     A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
                     update_column_excel_file(ms_access_token, body_query, row_num, A_column)
                     continue
-
+                
+                # Optimize logic handle flow on below
                 pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
-                if pre_time_sheet is not None and pre_time_sheet.status == "Submitted":
-                    frappe.db.set_value("Timesheet", time_sheet_id, {
-                        "status": "Cancelled",
-                        "docstatus": 2,
-                    })
+                if pre_time_sheet is not None and (pre_time_sheet.status == "Submitted" or pre_time_sheet.status == "Cancelled"):
+                    if pre_time_sheet.status == "Submitted":
+                        frappe.db.set_value("Timesheet", time_sheet_id, {
+                            "status": "Cancelled",
+                            "docstatus": 2,
+                        })
+
                     new_time_sheet_doc = create_new_timesheet(
                         dates,
 						project_code,
