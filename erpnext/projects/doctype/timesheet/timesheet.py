@@ -530,7 +530,7 @@ def create_new_timesheet(
 	dates,
 	project_code,
 	emp_name,
-	excel_ts_status,
+	excel_ts_doc_status,
 	excel_task_status,
 	activity_code,
 	task_doc,
@@ -541,7 +541,7 @@ def create_new_timesheet(
     time_sheet_doc.parent_project = project_code
     time_sheet_doc.employee = emp_name
     time_sheet_doc.company = company
-    time_sheet_doc.status = excel_ts_status
+    time_sheet_doc.docstatus=excel_ts_doc_status,
 
     if len(dates) > 0 and activity_code != "":
         for date, hrs in dates.items():
@@ -567,7 +567,6 @@ def update_timesheet(
 	dates,
 	project_code,
 	emp_name,
-	excel_ts_status,
 	excel_ts_doc_status,
 	excel_task_status,
 	activity_code,
@@ -578,7 +577,6 @@ def update_timesheet(
         dict(
             parent_project=project_code,
             employee=emp_name,
-            status=excel_ts_status,
             docstatus=excel_ts_doc_status,
             time_logs=[],
         )
@@ -655,7 +653,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 						dates,
 						project_code,
 						emp_name,
-						excel_ts_status,
+						excel_ts_doc_status,
 						excel_task_status,
 						activity_code,
 						task_doc,
@@ -667,15 +665,12 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 
                 pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
                 if pre_time_sheet is not None and pre_time_sheet.status == "Submitted":
-                    frappe.db.set_value("Timesheet", time_sheet_id, {
-                        "status": "Cancelled",
-                        "docstatus": 2
-                    })
+                    frappe.db.set_value("Timesheet", time_sheet_id, { "docstatus": 2 }) # Cancelled
                     new_time_sheet_doc = create_new_timesheet(
                         dates,
 						project_code,
 						emp_name,
-						excel_ts_status,
+						excel_ts_doc_status,
                         excel_task_status,
 						activity_code,
 						task_doc,
@@ -690,7 +685,6 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 					dates,
 					project_code,
 					emp_name,
-					excel_ts_status,
                     excel_ts_doc_status,
 					excel_task_status,
 					activity_code,
