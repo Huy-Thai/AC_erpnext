@@ -424,6 +424,7 @@ def process_handle_task_by_excel(task_id, payload: TaskModel):
 		new_task_doc.expected_time = payload.expected_time
 		new_task_doc.parent_task = payload.parent_task
 		new_task_doc.assigned_to = payload.employee_name
+		new_task_doc.company = payload.company
 		new_task_doc.insert()
 		frappe.db.commit()
 		return new_task_doc.name

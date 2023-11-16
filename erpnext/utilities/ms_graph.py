@@ -72,7 +72,7 @@ class ParentTaskModel:
 
 
 class TaskModel:
-    def __init__(self, num, cell, parent_task=None):
+    def __init__(self, num, cell, company, parent_task=None):
         assert cell["C"] != "", "Value Cell C is required"
         assert cell["O"] != "", "Value Cell O is required"
 
@@ -89,6 +89,7 @@ class TaskModel:
         self.expected_time = expected_time
         self.employee_name = cell["M"]
         self.parent_task = parent_task
+        self.company = company
 
 
 @cache

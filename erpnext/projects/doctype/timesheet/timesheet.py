@@ -649,7 +649,7 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
                 emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
                 if emp_name is None: continue
 
-                task_doc = process_handle_task_by_excel(task_id, TaskModel(row_num, cell, parent_task))
+                task_doc = process_handle_task_by_excel(task_id, TaskModel(row_num, cell, company, parent_task))
                 if time_sheet_id == "":
                     new_time_sheet_doc = create_new_timesheet(
 						dates,
