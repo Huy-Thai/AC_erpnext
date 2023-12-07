@@ -7,7 +7,7 @@ from collections import OrderedDict
 import frappe
 from frappe import _, qb, scrub
 from frappe.query_builder import Criterion
-from frappe.query_builder.functions import Date, Sum
+from frappe.query_builder.functions import Date, Substring, Sum
 from frappe.utils import cint, cstr, flt, getdate, nowdate
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
@@ -123,7 +123,7 @@ class ReceivablePayableReport(object):
 			else:
 				key = (ple.account, ple.voucher_type, ple.voucher_no, ple.party)
 
-			if not key in self.voucher_balance:
+			if key not in self.voucher_balance:
 				self.voucher_balance[key] = frappe._dict(
 					voucher_type=ple.voucher_type,
 					voucher_no=ple.voucher_no,
@@ -285,8 +285,8 @@ class ReceivablePayableReport(object):
 
 			must_consider = False
 			if self.filters.get("for_revaluation_journals"):
-				if (abs(row.outstanding) > 1.0 / 10**self.currency_precision) or (
-					(abs(row.outstanding_in_account_currency) > 1.0 / 10**self.currency_precision)
+				if (abs(row.outstanding) > 0.0 / 10**self.currency_precision) or (
+					(abs(row.outstanding_in_account_currency) > 0.0 / 10**self.currency_precision)
 				):
 					must_consider = True
 			else:
@@ -764,7 +764,12 @@ class ReceivablePayableReport(object):
 		)
 
 		if self.filters.get("show_remarks"):
-			query = query.select(ple.remarks)
+			if remarks_length := frappe.db.get_single_value(
+				"Accounts Settings", "receivable_payable_remarks_length"
+			):
+				query = query.select(Substring(ple.remarks, 1, remarks_length).as_("remarks"))
+			else:
+				query = query.select(ple.remarks)
 
 		if self.filters.get("group_by_party"):
 			query = query.orderby(self.ple.party, self.ple.posting_date)
@@ -933,7 +938,7 @@ class ReceivablePayableReport(object):
 			return True
 
 	def get_party_details(self, party):
-		if not party in self.party_details:
+		if party not in self.party_details:
 			if self.account_type == "Receivable":
 				fields = ["customer_name", "territory", "customer_group", "customer_primary_contact"]
 
@@ -1082,7 +1087,7 @@ class ReceivablePayableReport(object):
 			)
 
 		if self.filters.show_remarks:
-			self.add_column(label=_("Remarks"), fieldname="remarks", fieldtype="Text", width=200),
+			self.add_column(label=_("Remarks"), fieldname="remarks", fieldtype="Text", width=200)
 
 	def add_column(self, label, fieldname=None, fieldtype="Currency", options=None, width=120):
 		if not fieldname:

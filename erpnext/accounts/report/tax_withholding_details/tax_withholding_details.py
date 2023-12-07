@@ -154,7 +154,7 @@ def get_gle_map(documents):
 	)
 
 	for d in gle:
-		if not d.voucher_no in gle_map:
+		if d.voucher_no not in gle_map:
 			gle_map[d.voucher_no] = [d]
 		else:
 			gle_map[d.voucher_no].append(d)
@@ -181,6 +181,16 @@ def get_columns(filters):
 				"label": _(filters.party_type + " Name"),
 				"fieldname": "party_name",
 				"fieldtype": "Data",
+				"width": 180,
+			}
+		)
+	else:
+		columns.append(
+			{
+				"label": _(filters.get("party_type")),
+				"fieldname": "party",
+				"fieldtype": "Dynamic Link",
+				"options": "party_type",
 				"width": 180,
 			}
 		)

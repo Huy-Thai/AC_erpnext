@@ -421,52 +421,52 @@ scheduler_events = {
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
 		]
 	},
-	# "hourly": [
-	# 	"erpnext.erpnext_integrations.doctype.plaid_settings.plaid_settings.automatic_synchronization",
-	# 	"erpnext.projects.doctype.project.project.project_status_update_reminder",
-	# 	"erpnext.projects.doctype.project.project.hourly_reminder",
-	# 	"erpnext.projects.doctype.project.project.collect_project_status",
-	# ],
-	# "hourly_long": [
-	# 	"erpnext.accounts.doctype.process_subscription.process_subscription.create_subscription_process",
-	# 	"erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.repost_entries",
-	# 	"erpnext.bulk_transaction.doctype.bulk_transaction_log.bulk_transaction_log.retry_failing_transaction",
-	# ],
-	# "daily": [
-	# 	"erpnext.support.doctype.issue.issue.auto_close_tickets",
-	# 	"erpnext.crm.doctype.opportunity.opportunity.auto_close_opportunity",
-	# 	"erpnext.controllers.accounts_controller.update_invoice_status",
-	# 	"erpnext.accounts.doctype.fiscal_year.fiscal_year.auto_create_fiscal_year",
-	# 	"erpnext.projects.doctype.task.task.set_tasks_as_overdue",
-	# 	"erpnext.stock.doctype.serial_no.serial_no.update_maintenance_status",
-	# 	"erpnext.buying.doctype.supplier_scorecard.supplier_scorecard.refresh_scorecards",
-	# 	"erpnext.setup.doctype.company.company.cache_companies_monthly_sales_history",
-	# 	"erpnext.assets.doctype.asset.asset.update_maintenance_status",
-	# 	"erpnext.assets.doctype.asset.asset.make_post_gl_entry",
-	# 	"erpnext.crm.doctype.contract.contract.update_status_for_contracts",
-	# 	"erpnext.projects.doctype.project.project.update_project_sales_billing",
-	# 	"erpnext.projects.doctype.project.project.send_project_status_email_to_users",
-	# 	"erpnext.quality_management.doctype.quality_review.quality_review.review",
-	# 	"erpnext.support.doctype.service_level_agreement.service_level_agreement.check_agreement_status",
-	# 	"erpnext.crm.doctype.email_campaign.email_campaign.send_email_to_leads_or_contacts",
-	# 	"erpnext.crm.doctype.email_campaign.email_campaign.set_email_campaign_status",
-	# 	"erpnext.selling.doctype.quotation.quotation.set_expired_status",
-	# 	"erpnext.buying.doctype.supplier_quotation.supplier_quotation.set_expired_status",
-	# 	"erpnext.accounts.doctype.process_statement_of_accounts.process_statement_of_accounts.send_auto_email",
-	# 	"erpnext.accounts.utils.auto_create_exchange_rate_revaluation_daily",
-	# ],
-	# "weekly": [
-	# 	"erpnext.accounts.utils.auto_create_exchange_rate_revaluation_weekly",
-	# ],
-	# "daily_long": [
-	# 	"erpnext.setup.doctype.email_digest.email_digest.send",
-	# 	"erpnext.manufacturing.doctype.bom_update_tool.bom_update_tool.auto_update_latest_price_in_all_boms",
-	# 	"erpnext.crm.utils.open_leads_opportunities_based_on_todays_event",
-	# 	"erpnext.assets.doctype.asset.depreciation.post_depreciation_entries",
-	# ],
-	# "monthly_long": [
-	# 	"erpnext.accounts.deferred_revenue.process_deferred_accounting",
-	# ],
+	"hourly": [
+		"erpnext.erpnext_integrations.doctype.plaid_settings.plaid_settings.automatic_synchronization",
+		"erpnext.projects.doctype.project.project.project_status_update_reminder",
+		"erpnext.projects.doctype.project.project.hourly_reminder",
+		"erpnext.projects.doctype.project.project.collect_project_status",
+	],
+	"hourly_long": [
+		"erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.repost_entries",
+		"erpnext.utilities.bulk_transaction.retry",
+	],
+	"daily": [
+		"erpnext.support.doctype.issue.issue.auto_close_tickets",
+		"erpnext.crm.doctype.opportunity.opportunity.auto_close_opportunity",
+		"erpnext.controllers.accounts_controller.update_invoice_status",
+		"erpnext.accounts.doctype.fiscal_year.fiscal_year.auto_create_fiscal_year",
+		"erpnext.projects.doctype.task.task.set_tasks_as_overdue",
+		"erpnext.stock.doctype.serial_no.serial_no.update_maintenance_status",
+		"erpnext.buying.doctype.supplier_scorecard.supplier_scorecard.refresh_scorecards",
+		"erpnext.setup.doctype.company.company.cache_companies_monthly_sales_history",
+		"erpnext.assets.doctype.asset.asset.update_maintenance_status",
+		"erpnext.assets.doctype.asset.asset.make_post_gl_entry",
+		"erpnext.crm.doctype.contract.contract.update_status_for_contracts",
+		"erpnext.projects.doctype.project.project.update_project_sales_billing",
+		"erpnext.projects.doctype.project.project.send_project_status_email_to_users",
+		"erpnext.quality_management.doctype.quality_review.quality_review.review",
+		"erpnext.support.doctype.service_level_agreement.service_level_agreement.check_agreement_status",
+		"erpnext.crm.doctype.email_campaign.email_campaign.send_email_to_leads_or_contacts",
+		"erpnext.crm.doctype.email_campaign.email_campaign.set_email_campaign_status",
+		"erpnext.selling.doctype.quotation.quotation.set_expired_status",
+		"erpnext.buying.doctype.supplier_quotation.supplier_quotation.set_expired_status",
+		"erpnext.accounts.doctype.process_statement_of_accounts.process_statement_of_accounts.send_auto_email",
+		"erpnext.accounts.utils.auto_create_exchange_rate_revaluation_daily",
+	],
+	"weekly": [
+		"erpnext.accounts.utils.auto_create_exchange_rate_revaluation_weekly",
+	],
+	"daily_long": [
+		"erpnext.accounts.doctype.process_subscription.process_subscription.create_subscription_process",
+		"erpnext.setup.doctype.email_digest.email_digest.send",
+		"erpnext.manufacturing.doctype.bom_update_tool.bom_update_tool.auto_update_latest_price_in_all_boms",
+		"erpnext.crm.utils.open_leads_opportunities_based_on_todays_event",
+		"erpnext.assets.doctype.asset.depreciation.post_depreciation_entries",
+	],
+	"monthly_long": [
+		"erpnext.accounts.deferred_revenue.process_deferred_accounting",
+	],
 }
 
 email_brand_image = "assets/erpnext/images/erpnext-logo.jpg"
@@ -548,6 +548,8 @@ accounting_dimension_doctypes = [
 	"Subcontracting Receipt",
 	"Subcontracting Receipt Item",
 	"Account Closing Balance",
+	"Supplier Quotation",
+	"Supplier Quotation Item",
 ]
 
 get_matching_queries = (
@@ -644,4 +646,12 @@ additional_timeline_content = {
 
 extend_bootinfo = [
 	"erpnext.support.doctype.service_level_agreement.service_level_agreement.add_sla_doctypes",
+	"erpnext.startup.boot.bootinfo",
 ]
+
+
+default_log_clearing_doctypes = {
+	"Repost Item Valuation": 60,
+}
+
+export_python_type_annotations = True

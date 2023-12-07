@@ -766,7 +766,9 @@ class update_entries_after(object):
 		sle.doctype = "Stock Ledger Entry"
 		frappe.get_doc(sle).db_update()
 
-		if not self.args.get("sle_id"):
+		if not self.args.get("sle_id") or (
+			sle.serial_and_batch_bundle and sle.auto_created_serial_and_batch_bundle
+		):
 			self.update_outgoing_rate_on_transaction(sle)
 
 	def reset_actual_qty_for_stock_reco(self, sle):
@@ -1709,7 +1711,7 @@ def get_datetime_limit_condition(detail):
 def validate_negative_qty_in_future_sle(args, allow_negative_stock=False):
 	if allow_negative_stock or is_negative_stock_allowed(item_code=args.item_code):
 		return
-	if not (args.actual_qty < 0 or args.voucher_type == "Stock Reconciliation"):
+	if args.actual_qty >= 0 and args.voucher_type != "Stock Reconciliation":
 		return
 
 	neg_sle = get_future_sle_with_negative_qty(args)
