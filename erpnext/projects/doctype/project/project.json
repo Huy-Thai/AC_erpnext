@@ -499,8 +499,7 @@
    "options": "PROJ-.####",
    "print_hide": 1,
    "reqd": 1,
-   "set_only_once": 1,
-   "hidden": 1
+   "set_only_once": 1
   }
  ],
  "icon": "fa fa-puzzle-piece",
