@@ -98,8 +98,7 @@
    "fieldtype": "Data",
    "label": "Project Name",
    "oldfieldtype": "Data",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "default": "Opened",
