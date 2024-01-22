@@ -2,13 +2,16 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "naming_series:",
+ "autoname": "format:{project_code}{project_year}_{customer}.{project_amd}",
  "creation": "2013-03-07 11:55:07",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "project_code",
+  "project_year",
+  "project_amd",
   "project_name",
   "status",
   "project_type",
@@ -16,9 +19,13 @@
   "percent_complete_method",
   "percent_complete",
   "column_break_5",
+  "project_cnt",
+  "project_development",
+  "project_dev",
   "project_template",
   "expected_start_date",
   "expected_end_date",
+  "new_end_date",
   "priority",
   "department",
   "customer_details",
@@ -66,15 +73,35 @@
  ],
  "fields": [
   {
+   "fieldname": "project_code",
+   "fieldtype": "Data",
+   "label": "Project Code",
+   "oldfieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project_year",
+   "fieldtype": "Data",
+   "label": "Year",
+   "oldfieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project_amd",
+   "fieldtype": "Data",
+   "label": "AMD",
+   "oldfieldtype": "Data",
+   "reqd": 1
+  },
+  {
    "fieldname": "project_name",
    "fieldtype": "Data",
    "label": "Project Name",
    "oldfieldtype": "Data",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
-   "default": "Open",
+   "default": "Opened",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_standard_filter": 1,
@@ -82,7 +109,7 @@
    "no_copy": 1,
    "oldfieldname": "status",
    "oldfieldtype": "Select",
-   "options": "Open\nCompleted\nCancelled",
+   "options": "Opened\nSuspended\nCompleted\nTerminated",
    "search_index": 1
   },
   {
@@ -123,6 +150,25 @@
    "fieldtype": "Column Break"
   },
   {
+    "fieldname": "project_cnt",
+    "fieldtype": "Data",
+    "label": "CNT",
+    "oldfieldtype": "Data",
+    "reqd": 1
+   },
+   {
+    "fieldname": "project_development",
+    "fieldtype": "Data",
+    "label": "Project Development",
+    "oldfieldtype": "Data"
+   },
+   {
+    "fieldname": "project_dev",
+    "fieldtype": "Data",
+    "label": "DEV",
+    "oldfieldtype": "Data"
+   },
+  {
    "allow_in_quick_entry": 1,
    "fieldname": "project_template",
    "fieldtype": "Link",
@@ -147,6 +193,12 @@
    "oldfieldname": "completion_date",
    "oldfieldtype": "Date"
   },
+  {
+    "bold": 1,
+    "fieldname": "new_end_date",
+    "fieldtype": "Date",
+    "label": "New End Date"
+   },
   {
    "fieldname": "priority",
    "fieldtype": "Select",
@@ -179,7 +231,8 @@
    "oldfieldtype": "Link",
    "options": "Customer",
    "print_hide": 1,
-   "search_index": 1
+   "search_index": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_14",

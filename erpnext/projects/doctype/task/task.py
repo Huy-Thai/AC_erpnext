@@ -12,10 +12,12 @@ from frappe.utils import add_days, cstr, date_diff, flt, get_link_to_form, getda
 from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
+from erpnext.utilities.ms_graph import (
+	TaskModel, ParentTaskModel, update_column_excel_file, hash_str_8_dig, split_str_get_key )
+
 
 class CircularReferenceError(frappe.ValidationError):
 	pass
-
 
 class Task(NestedSet):
 	# begin: auto-generated types
@@ -77,7 +79,7 @@ class Task(NestedSet):
 			return ret
 
 	def validate(self):
-		self.validate_dates()
+		# self.validate_dates() #TODO: check if new end date exits
 		self.validate_progress()
 		self.validate_status()
 		self.update_depends_on()
@@ -85,9 +87,9 @@ class Task(NestedSet):
 		self.validate_completed_on()
 
 	def validate_dates(self):
-		self.validate_from_to_dates("exp_start_date", "exp_end_date")
+		# self.validate_from_to_dates("exp_start_date", "exp_end_date")
 		self.validate_from_to_dates("act_start_date", "act_end_date")
-		self.validate_parent_expected_end_date()
+		# self.validate_parent_expected_end_date()
 		self.validate_parent_project_dates()
 
 	def validate_parent_expected_end_date(self):
@@ -127,9 +129,9 @@ class Task(NestedSet):
 	def validate_status(self):
 		if self.is_template and self.status != "Template":
 			self.status = "Template"
-		if self.status != self.get_db_value("status") and self.status == "Completed":
+		if self.status != self.get_db_value("status") and self.status == "Done":
 			for d in self.depends_on:
-				if frappe.db.get_value("Task", d.task, "status") not in ("Completed", "Cancelled"):
+				if frappe.db.get_value("Task", d.task, "status") not in ("Done", "Cancel"):
 					frappe.throw(
 						_(
 							"Cannot complete task {0} as its dependant task {1} are not completed / cancelled."
@@ -142,7 +144,7 @@ class Task(NestedSet):
 		if flt(self.progress or 0) > 100:
 			frappe.throw(_("Progress % for a task cannot be more than 100."))
 
-		if self.status == "Completed":
+		if self.status == "Done":
 			self.progress = 100
 
 	def validate_dependencies_for_template_task(self):
@@ -165,7 +167,7 @@ class Task(NestedSet):
 
 	def validate_completed_on(self):
 		if self.completed_on and getdate(self.completed_on) > getdate():
-			frappe.throw(_("Completed On cannot be greater than Today"))
+			frappe.throw(_("Done On cannot be greater than Today"))
 
 	def update_depends_on(self):
 		depends_on_tasks = ""
@@ -186,9 +188,9 @@ class Task(NestedSet):
 		self.populate_depends_on()
 
 	def unassign_todo(self):
-		if self.status == "Completed":
+		if self.status == "Done":
 			close_all_assignments(self.doctype, self.name)
-		if self.status == "Cancelled":
+		if self.status == "Cancel":
 			clear(self.doctype, self.name)
 
 	def update_time_and_costing(self):
@@ -200,7 +202,7 @@ class Task(NestedSet):
 			as_dict=1,
 		)[0]
 		if self.status == "Open":
-			self.status = "Working"
+			self.status = "In Progress"
 		self.total_costing_amount = tl.total_costing_amount
 		self.total_billing_amount = tl.total_billing_amount
 		self.actual_time = tl.time
@@ -285,7 +287,7 @@ class Task(NestedSet):
 		self.update_project()
 
 	def update_status(self):
-		if self.status not in ("Cancelled", "Completed") and self.exp_end_date:
+		if self.status not in ("Cancel", "Done") and self.exp_end_date:
 			from datetime import datetime
 
 			if self.exp_end_date < datetime.now().date():
@@ -341,11 +343,11 @@ def set_multiple_status(names, status):
 def set_tasks_as_overdue():
 	tasks = frappe.get_all(
 		"Task",
-		filters={"status": ["not in", ["Cancelled", "Completed"]]},
+		filters={"status": ["not in", ["Cancel", "Done"]]},
 		fields=["name", "status", "review_date"],
 	)
 	for task in tasks:
-		if task.status == "Pending Review":
+		if task.status == "Pending" or task.status == "Review":
 			if getdate(task.review_date) > getdate(today()):
 				continue
 		frappe.get_doc("Task", task.name).update_status()
@@ -359,7 +361,7 @@ def make_timesheet(source_name, target_doc=None, ignore_permissions=False):
 			"time_logs",
 			{
 				"hours": source.actual_time,
-				"completed": source.status == "Completed",
+				"completed": source.status == "Done",
 				"project": source.project,
 				"task": source.name,
 			},
@@ -434,3 +436,62 @@ def add_multiple_tasks(data, parent):
 
 def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
+	
+
+def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_query, payload: ParentTaskModel):
+    prev_hash_key, _, __ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
+    new_key = f"{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
+    new_hash_key = hash_str_8_dig(new_key)
+
+    if prev_hash_key == "" or prev_hash_key != new_hash_key:
+        parent_task_doc = frappe.get_doc("Task", parent_task_id)
+        parent_task_doc.update(
+            dict(
+                exp_start_date=payload.expected_start_date,
+                exp_end_date=payload.expected_end_date,
+                new_end_date=payload.new_end_date,
+				expected_time=payload.expected_time,
+            )
+        )
+        parent_task_doc.save()
+        frappe.db.commit()
+
+        A_column_value = f"{new_hash_key}--{parent_task_id}"
+        update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
+        return
+
+    return
+
+def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
+	if task_id == "":
+		new_task_doc = frappe.new_doc("Task")
+		new_task_doc.task_number = payload.task_number
+		new_task_doc.subject = payload.subject
+		new_task_doc.project = payload.project
+		new_task_doc.status = payload.status
+		new_task_doc.priority = payload.priority
+		new_task_doc.progress = payload.progress
+		new_task_doc.expected_time = payload.expected_time
+		new_task_doc.parent_task = parent_task
+		new_task_doc.assigned_to = payload.employee_name
+		new_task_doc.company = payload.company
+		new_task_doc.insert()
+		frappe.db.commit()
+		return new_task_doc.name
+
+	task_doc = frappe.get_doc("Task", task_id)
+	task_doc.update(
+		dict(
+			task_number=payload.task_number,
+			subject=payload.subject,
+			project=payload.project,
+			status=payload.status,
+			priority=payload.priority,
+			progress=payload.progress,
+			expected_time=payload.expected_time,
+			parent_task=parent_task,
+		)
+	)
+	task_doc.save()
+	frappe.db.commit()
+	return task_id

@@ -392,21 +392,30 @@ auto_cancel_exempted_doctypes = [
 
 scheduler_events = {
 	"cron": {
-		"0/15 * * * *": [
-			"erpnext.manufacturing.doctype.bom_update_log.bom_update_log.resume_bom_cost_update_jobs",
-			"erpnext.accounts.doctype.process_payment_reconciliation.process_payment_reconciliation.trigger_reconciliation_for_queued_docs",
+		# "0/15 * * * *": [
+		# 	"erpnext.manufacturing.doctype.bom_update_log.bom_update_log.resume_bom_cost_update_jobs",
+		# 	"erpnext.accounts.doctype.process_payment_reconciliation.process_payment_reconciliation.trigger_reconciliation_for_queued_docs",
+		# ],
+		# "0/30 * * * *": [
+		# 	"erpnext.utilities.doctype.video.video.update_youtube_data",
+		# ],
+		# # Hourly but offset by 30 minutes
+		# "30 * * * *": [
+		# 	"erpnext.accounts.doctype.gl_entry.gl_entry.rename_gle_sle_docs",
+		# ],
+		# # Daily but offset by 45 minutes
+		# "45 0 * * *": [
+		# 	"erpnext.stock.reorder_item.reorder_item",
+		# ],
+        "35 22 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_2_q4",
 		],
-		"0/30 * * * *": [
-			"erpnext.utilities.doctype.video.video.update_youtube_data",
+        "45 22 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_cad",
 		],
-		# Hourly but offset by 30 minutes
-		"30 * * * *": [
-			"erpnext.accounts.doctype.gl_entry.gl_entry.rename_gle_sle_docs",
-		],
-		# Daily but offset by 45 minutes
-		"45 0 * * *": [
-			"erpnext.stock.reorder_item.reorder_item",
-		],
+        "55 22 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
+		]
 	},
 	"hourly": [
 		"erpnext.erpnext_integrations.doctype.plaid_settings.plaid_settings.automatic_synchronization",

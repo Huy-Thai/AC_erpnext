@@ -1,12 +1,13 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "TASK-.YYYY.-.#####",
+ "autoname": "hash",
  "creation": "2013-01-29 19:25:50",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "task_number",
   "subject",
   "project",
   "issue",
@@ -21,9 +22,11 @@
   "parent_task",
   "completed_by",
   "completed_on",
+  "assigned_to",
   "sb_timeline",
   "exp_start_date",
   "expected_time",
+  "new_end_date",
   "start",
   "column_break_11",
   "exp_end_date",
@@ -56,6 +59,14 @@
   "template_task"
  ],
  "fields": [
+    {
+    "fieldname": "task_number",
+    "fieldtype": "Data",
+    "in_global_search": 1,
+    "in_standard_filter": 1,
+    "label": "No.",
+    "search_index": 1
+    },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "subject",
@@ -118,7 +129,7 @@
    "no_copy": 1,
    "oldfieldname": "status",
    "oldfieldtype": "Select",
-   "options": "Open\nWorking\nPending Review\nOverdue\nTemplate\nCompleted\nCancelled"
+   "options": "Open\nIn Progress\nPending\nDone\nReview\nCancel\nOverdue\nTemplate"
   },
   {
    "fieldname": "priority",
@@ -146,6 +157,13 @@
    "search_index": 1
   },
   {
+    "fieldname": "assigned_to",
+    "fieldtype": "Data",
+    "ignore_user_permissions": 1,
+    "in_global_search": 1,
+    "label": "Assigned To"
+   },
+  {
    "collapsible": 1,
    "collapsible_depends_on": "eval:doc.__islocal",
    "fieldname": "sb_timeline",
@@ -168,6 +186,12 @@
    "oldfieldname": "exp_total_hrs",
    "oldfieldtype": "Data"
   },
+  {
+    "bold": 1,
+    "fieldname": "new_end_date",
+    "fieldtype": "Date",
+    "label": "New End Date"
+   },
   {
    "fetch_from": "type.weight",
    "fieldname": "task_weight",

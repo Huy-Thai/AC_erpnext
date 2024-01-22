@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "naming_series:",
+ "autoname": "format:TS-{DD}-{MM}-{YY}-{#####}_{employee}",
  "creation": "2013-02-28 17:57:33",
  "doctype": "DocType",
  "document_type": "Document",
@@ -105,7 +105,8 @@
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Employee",
-   "options": "Employee"
+   "options": "Employee",
+   "reqd": 1
   },
   {
    "depends_on": "employee",
@@ -160,8 +161,7 @@
    "fieldname": "time_logs",
    "fieldtype": "Table",
    "label": "Time Sheets",
-   "options": "Timesheet Detail",
-   "reqd": 1
+   "options": "Timesheet Detail"
   },
   {
    "fieldname": "working_hours",
@@ -262,7 +262,8 @@
    "fieldname": "parent_project",
    "fieldtype": "Link",
    "label": "Project",
-   "options": "Project"
+   "options": "Project",
+   "reqd": 1
   },
   {
    "fieldname": "customer",
