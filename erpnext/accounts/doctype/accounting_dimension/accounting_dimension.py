@@ -11,6 +11,10 @@ from frappe.model import core_doctypes_list
 from frappe.model.document import Document
 from frappe.utils import cstr
 
+from erpnext.accounts.doctype.repost_accounting_ledger.repost_accounting_ledger import (
+	get_allowed_types_from_settings,
+)
+
 
 class AccountingDimension(Document):
 	# begin: auto-generated types
@@ -106,6 +110,7 @@ def make_dimension_in_accounting_doctypes(doc, doclist=None):
 
 	doc_count = len(get_accounting_dimensions())
 	count = 0
+	repostable_doctypes = get_allowed_types_from_settings()
 
 	for doctype in doclist:
 
@@ -121,6 +126,7 @@ def make_dimension_in_accounting_doctypes(doc, doclist=None):
 			"options": doc.document_type,
 			"insert_after": insert_after_field,
 			"owner": "Administrator",
+			"allow_on_submit": 1 if doctype in repostable_doctypes else 0,
 		}
 
 		meta = frappe.get_meta(doctype, cached=False)
@@ -255,14 +261,16 @@ def get_accounting_dimensions(as_list=True, filters=None):
 
 
 def get_checks_for_pl_and_bs_accounts():
-	dimensions = frappe.db.sql(
-		"""SELECT p.label, p.disabled, p.fieldname, c.default_dimension, c.company, c.mandatory_for_pl, c.mandatory_for_bs
-		FROM `tabAccounting Dimension`p ,`tabAccounting Dimension Detail` c
-		WHERE p.name = c.parent""",
-		as_dict=1,
-	)
+	if frappe.flags.accounting_dimensions_details is None:
+		# nosemgrep
+		frappe.flags.accounting_dimensions_details = frappe.db.sql(
+			"""SELECT p.label, p.disabled, p.fieldname, c.default_dimension, c.company, c.mandatory_for_pl, c.mandatory_for_bs
+			FROM `tabAccounting Dimension`p ,`tabAccounting Dimension Detail` c
+			WHERE p.name = c.parent""",
+			as_dict=1,
+		)
 
-	return dimensions
+	return frappe.flags.accounting_dimensions_details
 
 
 def get_dimension_with_children(doctype, dimensions):

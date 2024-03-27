@@ -78,9 +78,7 @@ class Subscription(Document):
 		purchase_tax_template: DF.Link | None
 		sales_tax_template: DF.Link | None
 		start_date: DF.Date | None
-		status: DF.Literal[
-			"", "Trialling", "Active", "Past Due Date", "Cancelled", "Unpaid", "Completed"
-		]
+		status: DF.Literal["", "Trialing", "Active", "Past Due Date", "Cancelled", "Unpaid", "Completed"]
 		submit_invoice: DF.Check
 		trial_period_end: DF.Date | None
 		trial_period_start: DF.Date | None
@@ -233,7 +231,7 @@ class Subscription(Document):
 		Sets the status of the `Subscription`
 		"""
 		if self.is_trialling():
-			self.status = "Trialling"
+			self.status = "Trialing"
 		elif (
 			self.status == "Active" and self.end_date and getdate(posting_date) > getdate(self.end_date)
 		):
@@ -410,11 +408,11 @@ class Subscription(Document):
 		# Earlier subscription didn't had any company field
 		company = self.get("company") or get_default_company()
 		if not company:
-			# fmt: off
 			frappe.throw(
-				_("Company is mandatory was generating invoice. Please set default company in Global Defaults.")
+				_(
+					"Company is mandatory for generating an invoice. Please set a default company in Global Defaults."
+				)
 			)
-			# fmt: on
 
 		invoice = frappe.new_doc(self.invoice_document_type)
 		invoice.company = company

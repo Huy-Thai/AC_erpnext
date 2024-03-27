@@ -35,7 +35,7 @@ class DeliveryNote(SellingController):
 		from erpnext.stock.doctype.packed_item.packed_item import PackedItem
 
 		additional_discount_percentage: DF.Float
-		address_display: DF.SmallText | None
+		address_display: DF.TextEditor | None
 		amended_from: DF.Link | None
 		amount_eligible_for_commission: DF.Currency
 		apply_discount_on: DF.Literal["", "Grand Total", "Net Total"]
@@ -52,7 +52,7 @@ class DeliveryNote(SellingController):
 		commission_rate: DF.Float
 		company: DF.Link
 		company_address: DF.Link | None
-		company_address_display: DF.SmallText | None
+		company_address_display: DF.TextEditor | None
 		contact_display: DF.SmallText | None
 		contact_email: DF.Data | None
 		contact_mobile: DF.SmallText | None
@@ -66,7 +66,7 @@ class DeliveryNote(SellingController):
 		customer_name: DF.Data | None
 		disable_rounded_total: DF.Check
 		discount_amount: DF.Currency
-		dispatch_address: DF.SmallText | None
+		dispatch_address: DF.TextEditor | None
 		dispatch_address_name: DF.Link | None
 		driver: DF.Link | None
 		driver_name: DF.Data | None
@@ -76,7 +76,7 @@ class DeliveryNote(SellingController):
 		ignore_pricing_rule: DF.Check
 		in_words: DF.Data | None
 		incoterm: DF.Link | None
-		installation_status: DF.Literal
+		installation_status: DF.Literal[None]
 		instructions: DF.Text | None
 		inter_company_reference: DF.Link | None
 		is_internal_customer: DF.Check
@@ -90,7 +90,7 @@ class DeliveryNote(SellingController):
 		named_place: DF.Data | None
 		naming_series: DF.Literal["MAT-DN-.YYYY.-", "MAT-DN-RET-.YYYY.-"]
 		net_total: DF.Currency
-		other_charges_calculation: DF.LongText | None
+		other_charges_calculation: DF.TextEditor | None
 		packed_items: DF.Table[PackedItem]
 		per_billed: DF.Percent
 		per_installed: DF.Percent
@@ -117,7 +117,7 @@ class DeliveryNote(SellingController):
 		set_posting_time: DF.Check
 		set_target_warehouse: DF.Link | None
 		set_warehouse: DF.Link | None
-		shipping_address: DF.SmallText | None
+		shipping_address: DF.TextEditor | None
 		shipping_address_name: DF.Link | None
 		shipping_rule: DF.Link | None
 		source: DF.Link | None
@@ -251,6 +251,7 @@ class DeliveryNote(SellingController):
 	def validate(self):
 		self.validate_posting_time()
 		super(DeliveryNote, self).validate()
+		self.validate_references()
 		self.set_status()
 		self.so_required()
 		self.validate_proj_cust()
@@ -333,12 +334,65 @@ class DeliveryNote(SellingController):
 							"type_of_transaction": "Outward",
 							"serial_and_batch_bundle": bundle_id,
 							"item_code": item.get("item_code"),
+							"warehouse": item.get("warehouse"),
 						}
 					)
 
 					cls_obj.duplicate_package()
 
 					item.serial_and_batch_bundle = cls_obj.serial_and_batch_bundle
+
+	def validate_references(self):
+		self.validate_sales_order_references()
+		self.validate_sales_invoice_references()
+
+	def validate_sales_order_references(self):
+		err_msg = ""
+		for item in self.items:
+			if (item.against_sales_order and not item.so_detail) or (
+				not item.against_sales_order and item.so_detail
+			):
+				if not item.against_sales_order:
+					err_msg += (
+						_("'Sales Order' reference ({1}) is missing in row {0}").format(
+							frappe.bold(item.idx), frappe.bold("against_sales_order")
+						)
+						+ "<br>"
+					)
+				else:
+					err_msg += (
+						_("'Sales Order Item' reference ({1}) is missing in row {0}").format(
+							frappe.bold(item.idx), frappe.bold("so_detail")
+						)
+						+ "<br>"
+					)
+
+		if err_msg:
+			frappe.throw(err_msg, title=_("References to Sales Orders are Incomplete"))
+
+	def validate_sales_invoice_references(self):
+		err_msg = ""
+		for item in self.items:
+			if (item.against_sales_invoice and not item.si_detail) or (
+				not item.against_sales_invoice and item.si_detail
+			):
+				if not item.against_sales_invoice:
+					err_msg += (
+						_("'Sales Invoice' reference ({1}) is missing in row {0}").format(
+							frappe.bold(item.idx), frappe.bold("against_sales_invoice")
+						)
+						+ "<br>"
+					)
+				else:
+					err_msg += (
+						_("'Sales Invoice Item' reference ({1}) is missing in row {0}").format(
+							frappe.bold(item.idx), frappe.bold("si_detail")
+						)
+						+ "<br>"
+					)
+
+		if err_msg:
+			frappe.throw(err_msg, title=_("References to Sales Invoices are Incomplete"))
 
 	def validate_proj_cust(self):
 		"""check for does customer belong to same project as entered.."""
@@ -398,6 +452,13 @@ class DeliveryNote(SellingController):
 			self.check_credit_limit()
 		elif self.issue_credit_note:
 			self.make_return_invoice()
+
+		for table_name in ["items", "packed_items"]:
+			if not self.get(table_name):
+				continue
+
+			self.make_bundle_using_old_serial_batch_fields(table_name)
+
 		# Updating stock ledger should always be called after updating prevdoc status,
 		# because updating reserved qty in bin depends upon updated delivered qty in SO
 		self.update_stock_ledger()
@@ -796,36 +857,36 @@ def update_billed_amount_based_on_so(so_detail, update_modified=True):
 
 	updated_dn = []
 	for dnd in dn_details:
-		billed_amt_agianst_dn = 0
+		billed_amt_against_dn = 0
 
 		# If delivered against Sales Invoice
 		if dnd.si_detail:
-			billed_amt_agianst_dn = flt(dnd.amount)
-			billed_against_so -= billed_amt_agianst_dn
+			billed_amt_against_dn = flt(dnd.amount)
+			billed_against_so -= billed_amt_against_dn
 		else:
 			# Get billed amount directly against Delivery Note
-			billed_amt_agianst_dn = frappe.db.sql(
+			billed_amt_against_dn = frappe.db.sql(
 				"""select sum(amount) from `tabSales Invoice Item`
 				where dn_detail=%s and docstatus=1""",
 				dnd.name,
 			)
-			billed_amt_agianst_dn = billed_amt_agianst_dn and billed_amt_agianst_dn[0][0] or 0
+			billed_amt_against_dn = billed_amt_against_dn and billed_amt_against_dn[0][0] or 0
 
 		# Distribute billed amount directly against SO between DNs based on FIFO
-		if billed_against_so and billed_amt_agianst_dn < dnd.amount:
-			pending_to_bill = flt(dnd.amount) - billed_amt_agianst_dn
+		if billed_against_so and billed_amt_against_dn < dnd.amount:
+			pending_to_bill = flt(dnd.amount) - billed_amt_against_dn
 			if pending_to_bill <= billed_against_so:
-				billed_amt_agianst_dn += pending_to_bill
+				billed_amt_against_dn += pending_to_bill
 				billed_against_so -= pending_to_bill
 			else:
-				billed_amt_agianst_dn += billed_against_so
+				billed_amt_against_dn += billed_against_so
 				billed_against_so = 0
 
 		frappe.db.set_value(
 			"Delivery Note Item",
 			dnd.name,
 			"billed_amt",
-			billed_amt_agianst_dn,
+			billed_amt_against_dn,
 			update_modified=update_modified,
 		)
 

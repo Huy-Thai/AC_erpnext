@@ -126,6 +126,7 @@ class AssetCapitalization(StockController):
 		self.create_target_asset()
 
 	def on_submit(self):
+		self.make_bundle_using_old_serial_batch_fields()
 		self.update_stock_ledger()
 		self.make_gl_entries()
 		self.update_target_asset()
@@ -137,15 +138,21 @@ class AssetCapitalization(StockController):
 			"Repost Item Valuation",
 			"Serial and Batch Bundle",
 			"Asset",
+			"Asset Movement",
 		)
 		self.cancel_target_asset()
 		self.update_stock_ledger()
 		self.make_gl_entries()
 		self.restore_consumed_asset_items()
 
+	def on_trash(self):
+		frappe.db.set_value("Asset", self.target_asset, "capitalized_in", None)
+		super(AssetCapitalization, self).on_trash()
+
 	def cancel_target_asset(self):
 		if self.entry_type == "Capitalization" and self.target_asset:
 			asset_doc = frappe.get_doc("Asset", self.target_asset)
+			asset_doc.db_set("capitalized_in", None)
 			if asset_doc.docstatus == 1:
 				asset_doc.cancel()
 

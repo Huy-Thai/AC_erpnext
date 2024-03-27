@@ -1,4 +1,4 @@
-frappe.listview_settings['Project'] = {
+frappe.listview_settings["Project"] = {
 	add_fields: ["status", "priority", "is_active", "percent_complete", "expected_end_date", "project_name"],
 	filters:[["status","=", "Opened"]],
 	get_indicator: function(doc) {
@@ -7,5 +7,5 @@ frappe.listview_settings['Project'] = {
 		} else {
 			return [__(doc.status), frappe.utils.guess_colour(doc.status), "status,=," + doc.status];
 		}
-	}
+	},
 };

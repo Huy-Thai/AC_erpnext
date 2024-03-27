@@ -24,6 +24,7 @@
   "inst_time",
   "status",
   "company",
+  "project",
   "amended_from",
   "remarks",
   "item_details",
@@ -93,7 +94,7 @@
   },
   {
    "fieldname": "address_display",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "hidden": 1,
    "label": "Address",
    "read_only": 1
@@ -225,13 +226,19 @@
    "oldfieldtype": "Table",
    "options": "Installation Note Item",
    "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
   }
  ],
  "icon": "fa fa-wrench",
  "idx": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-06-03 16:31:08.386961",
+ "modified": "2024-03-22 16:01:13.513355",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Installation Note",

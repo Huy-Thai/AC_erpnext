@@ -152,6 +152,7 @@ class Asset(AccountsController):
 	def on_submit(self):
 		self.validate_in_use_date()
 		self.make_asset_movement()
+		self.reload()
 		if not self.booked_fixed_asset and self.validate_make_gl_entry():
 			self.make_gl_entries()
 		if self.calculate_depreciation and not self.split_from:
@@ -163,6 +164,7 @@ class Asset(AccountsController):
 		self.validate_cancellation()
 		self.cancel_movement_entries()
 		self.cancel_capitalization()
+		self.reload()
 		self.delete_depreciation_entries()
 		cancel_asset_depr_schedules(self)
 		self.set_status()
@@ -519,14 +521,11 @@ class Asset(AccountsController):
 			movement.cancel()
 
 	def cancel_capitalization(self):
-		asset_capitalization = frappe.db.get_value(
-			"Asset Capitalization",
-			{"target_asset": self.name, "docstatus": 1, "entry_type": "Capitalization"},
-		)
-
-		if asset_capitalization:
-			asset_capitalization = frappe.get_doc("Asset Capitalization", asset_capitalization)
-			asset_capitalization.cancel()
+		if self.capitalized_in:
+			self.db_set("capitalized_in", None)
+			asset_capitalization = frappe.get_doc("Asset Capitalization", self.capitalized_in)
+			if asset_capitalization.docstatus == 1:
+				asset_capitalization.cancel()
 
 	def delete_depreciation_entries(self):
 		if self.calculate_depreciation:
@@ -701,7 +700,9 @@ class Asset(AccountsController):
 		fixed_asset_account, cwip_account = self.get_fixed_asset_account(), self.get_cwip_account()
 
 		if (
-			purchase_document and self.purchase_receipt_amount and self.available_for_use_date <= nowdate()
+			purchase_document
+			and self.purchase_receipt_amount
+			and getdate(self.available_for_use_date) <= getdate()
 		):
 
 			gl_entries.append(
@@ -1011,7 +1012,7 @@ def make_asset_movement(assets, purpose=None):
 		assets = json.loads(assets)
 
 	if len(assets) == 0:
-		frappe.throw(_("Atleast one asset has to be selected."))
+		frappe.throw(_("At least one asset has to be selected."))
 
 	asset_movement = frappe.new_doc("Asset Movement")
 	asset_movement.quantity = len(assets)

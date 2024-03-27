@@ -7,11 +7,14 @@ from frappe.utils import get_link_to_form, today
 
 
 @frappe.whitelist()
-def transaction_processing(data, from_doctype, to_doctype):
+def transaction_processing(data, from_doctype, to_doctype, args=None):
 	if isinstance(data, str):
 		deserialized_data = json.loads(data)
 	else:
 		deserialized_data = data
+
+	if isinstance(args, str):
+		args = frappe._dict(json.loads(args))
 
 	length_of_data = len(deserialized_data)
 
@@ -23,6 +26,7 @@ def transaction_processing(data, from_doctype, to_doctype):
 		deserialized_data=deserialized_data,
 		from_doctype=from_doctype,
 		to_doctype=to_doctype,
+		args=args,
 	)
 
 
@@ -71,8 +75,13 @@ def update_log(log_name, status, retried, err=None):
 		frappe.db.set_value("Bulk Transaction Log Detail", log_name, "error_description", err)
 
 
-def job(deserialized_data, from_doctype, to_doctype):
+def job(deserialized_data, from_doctype, to_doctype, args):
 	fail_count = 0
+
+	if args:
+		# currently: flag-based transport to `task`
+		frappe.flags.args = args
+
 	for d in deserialized_data:
 		try:
 			doc_name = d.get("name")
@@ -147,9 +156,12 @@ def task(doc_name, from_doctype, to_doctype):
 	else:
 		obj = mapper[from_doctype][to_doctype](doc_name)
 
-	obj.flags.ignore_validate = True
-	obj.set_title_field()
-	obj.insert(ignore_mandatory=True)
+	if obj:
+		obj.flags.ignore_validate = True
+		obj.set_title_field()
+		obj.insert(ignore_mandatory=True)
+
+	del obj
 	del frappe.flags.bulk_transaction
 
 
@@ -164,7 +176,7 @@ def create_log(doc_name, e, from_doctype, to_doctype, status, log_date=None, res
 	transaction_log.from_doctype = from_doctype
 	transaction_log.to_doctype = to_doctype
 	transaction_log.retried = restarted
-	transaction_log.save()
+	transaction_log.save(ignore_permissions=True)
 
 
 def show_job_status(fail_count, deserialized_data_count, to_doctype):

@@ -31,7 +31,7 @@ class SupplierQuotation(BuyingController):
 		)
 
 		additional_discount_percentage: DF.Float
-		address_display: DF.SmallText | None
+		address_display: DF.TextEditor | None
 		amended_from: DF.Link | None
 		apply_discount_on: DF.Literal["", "Grand Total", "Net Total"]
 		auto_repeat: DF.Link | None
@@ -46,7 +46,7 @@ class SupplierQuotation(BuyingController):
 		base_total: DF.Currency
 		base_total_taxes_and_charges: DF.Currency
 		billing_address: DF.Link | None
-		billing_address_display: DF.SmallText | None
+		billing_address_display: DF.TextEditor | None
 		buying_price_list: DF.Link | None
 		company: DF.Link
 		contact_display: DF.SmallText | None
@@ -71,7 +71,7 @@ class SupplierQuotation(BuyingController):
 		naming_series: DF.Literal["PUR-SQTN-.YYYY.-"]
 		net_total: DF.Currency
 		opportunity: DF.Link | None
-		other_charges_calculation: DF.LongText | None
+		other_charges_calculation: DF.MarkdownEditor | None
 		plc_conversion_rate: DF.Float
 		price_list_currency: DF.Link | None
 		pricing_rules: DF.Table[PricingRuleDetail]
@@ -81,7 +81,7 @@ class SupplierQuotation(BuyingController):
 		rounding_adjustment: DF.Currency
 		select_print_heading: DF.Link | None
 		shipping_address: DF.Link | None
-		shipping_address_display: DF.SmallText | None
+		shipping_address_display: DF.TextEditor | None
 		shipping_rule: DF.Link | None
 		status: DF.Literal["", "Draft", "Submitted", "Stopped", "Cancelled", "Expired"]
 		supplier: DF.Link

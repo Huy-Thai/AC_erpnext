@@ -762,11 +762,94 @@ class TestPurchaseOrder(FrappeTestCase):
 		pe_doc = frappe.get_doc("Payment Entry", pe.name)
 		pe_doc.cancel()
 
+	def create_account(self, account_name, company, currency, parent):
+		if not frappe.db.get_value(
+			"Account", filters={"account_name": account_name, "company": company}
+		):
+			account = frappe.get_doc(
+				{
+					"doctype": "Account",
+					"account_name": account_name,
+					"parent_account": parent,
+					"company": company,
+					"account_currency": currency,
+					"is_group": 0,
+					"account_type": "Payable",
+				}
+			).insert()
+		else:
+			account = frappe.db.get_value(
+				"Account",
+				filters={"account_name": account_name, "company": company},
+				fieldname="name",
+				pluck=True,
+			)
+
+		return account
+
+	def test_advance_payment_with_separate_party_account_enabled(self):
+		"""
+		Test "Advance Paid" on Purchase Order, when "Book Advance Payments in Separate Party Account" is enabled and
+		the payment entry linked to the Order is allocated to Purchase Invoice.
+		"""
+		supplier = "_Test Supplier"
+		company = "_Test Company"
+
+		# Setup default 'Advance Paid' account
+		account = self.create_account(
+			"Advance Paid", company, "INR", "Application of Funds (Assets) - _TC"
+		)
+		company_doc = frappe.get_doc("Company", company)
+		company_doc.book_advance_payments_in_separate_party_account = True
+		company_doc.default_advance_paid_account = account.name
+		company_doc.save()
+
+		po_doc = create_purchase_order(supplier=supplier)
+
+		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
+
+		pe = get_payment_entry("Purchase Order", po_doc.name)
+		pe.save().submit()
+
+		po_doc.reload()
+		self.assertEqual(po_doc.advance_paid, 5000)
+
+		from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_invoice
+
+		pi = make_purchase_invoice(po_doc.name)
+		pi.append(
+			"advances",
+			{
+				"reference_type": pe.doctype,
+				"reference_name": pe.name,
+				"reference_row": pe.references[0].name,
+				"advance_amount": 5000,
+				"allocated_amount": 5000,
+			},
+		)
+		pi.save().submit()
+		pe.reload()
+		po_doc.reload()
+		self.assertEqual(po_doc.advance_paid, 0)
+
+		company_doc.book_advance_payments_in_separate_party_account = False
+		company_doc.save()
+
 	@change_settings("Accounts Settings", {"unlink_advance_payment_on_cancelation_of_order": 1})
 	def test_advance_paid_upon_payment_entry_cancellation(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 
-		po_doc = create_purchase_order(supplier="_Test Supplier USD", currency="USD", do_not_submit=1)
+		supplier = "_Test Supplier USD"
+		company = "_Test Company"
+
+		# Setup default USD payable account for Supplier
+		account = self.create_account("Creditors USD", company, "USD", "Accounts Payable - _TC")
+		supplier_doc = frappe.get_doc("Supplier", supplier)
+		if not [x for x in supplier_doc.accounts if x.company == company]:
+			supplier_doc.append("accounts", {"company": company, "account": account.name})
+			supplier_doc.save()
+
+		po_doc = create_purchase_order(supplier=supplier, currency="USD", do_not_submit=1)
 		po_doc.conversion_rate = 80
 		po_doc.submit()
 
@@ -821,6 +904,30 @@ class TestPurchaseOrder(FrappeTestCase):
 		po_doc = frappe.get_doc("Purchase Order", po.get("name"))
 		# To test if the PO does NOT have a Blanket Order
 		self.assertEqual(po_doc.items[0].blanket_order, None)
+
+	def test_blanket_order_on_po_close_and_open(self):
+		# Step - 1: Create Blanket Order
+		bo = make_blanket_order(blanket_order_type="Purchasing", quantity=10, rate=10)
+
+		# Step - 2: Create Purchase Order
+		po = create_purchase_order(
+			item_code="_Test Item", qty=5, against_blanket_order=1, against_blanket=bo.name
+		)
+
+		bo.load_from_db()
+		self.assertEqual(bo.items[0].ordered_qty, 5)
+
+		# Step - 3: Close Purchase Order
+		po.update_status("Closed")
+
+		bo.load_from_db()
+		self.assertEqual(bo.items[0].ordered_qty, 0)
+
+		# Step - 4: Re-Open Purchase Order
+		po.update_status("Re-open")
+
+		bo.load_from_db()
+		self.assertEqual(bo.items[0].ordered_qty, 5)
 
 	def test_payment_terms_are_fetched_when_creating_purchase_invoice(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import (
@@ -1021,6 +1128,65 @@ class TestPurchaseOrder(FrappeTestCase):
 
 		self.assertTrue(frappe.db.get_value("Subcontracting Order", {"purchase_order": po.name}))
 
+	def test_purchase_order_advance_payment_status(self):
+		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
+		from erpnext.accounts.doctype.payment_request.payment_request import make_payment_request
+
+		po = create_purchase_order()
+		self.assertEqual(
+			frappe.db.get_value(po.doctype, po.name, "advance_payment_status"), "Not Initiated"
+		)
+
+		pr = make_payment_request(dt=po.doctype, dn=po.name, submit_doc=True, return_doc=True)
+		self.assertEqual(frappe.db.get_value(po.doctype, po.name, "advance_payment_status"), "Initiated")
+
+		pe = get_payment_entry(po.doctype, po.name).save().submit()
+		self.assertEqual(
+			frappe.db.get_value(po.doctype, po.name, "advance_payment_status"), "Fully Paid"
+		)
+
+		pe.reload()
+		pe.cancel()
+		self.assertEqual(frappe.db.get_value(po.doctype, po.name, "advance_payment_status"), "Initiated")
+
+		pr.reload()
+		pr.cancel()
+		self.assertEqual(
+			frappe.db.get_value(po.doctype, po.name, "advance_payment_status"), "Not Initiated"
+		)
+
+	def test_po_billed_amount_against_return_entry(self):
+		from erpnext.accounts.doctype.purchase_invoice.purchase_invoice import make_debit_note
+
+		# Create a Purchase Order and Fully Bill it
+		po = create_purchase_order()
+		pi = make_pi_from_po(po.name)
+		pi.insert()
+		pi.submit()
+
+		# Debit Note - 50% Qty & enable updating PO billed amount
+		pi_return = make_debit_note(pi.name)
+		pi_return.items[0].qty = -5
+		pi_return.update_billed_amount_in_purchase_order = 1
+		pi_return.submit()
+
+		# Check if the billed amount reduced
+		po.reload()
+		self.assertEqual(po.per_billed, 50)
+
+		pi_return.reload()
+		pi_return.cancel()
+
+		# Debit Note - 50% Qty & disable updating PO billed amount
+		pi_return = make_debit_note(pi.name)
+		pi_return.items[0].qty = -5
+		pi_return.update_billed_amount_in_purchase_order = 0
+		pi_return.submit()
+
+		# Check if the billed amount stayed the same
+		po.reload()
+		self.assertEqual(po.per_billed, 100)
+
 
 def prepare_data_for_internal_transfer():
 	from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_internal_supplier
@@ -1121,6 +1287,7 @@ def create_purchase_order(**args):
 				"schedule_date": add_days(nowdate(), 1),
 				"include_exploded_items": args.get("include_exploded_items", 1),
 				"against_blanket_order": args.against_blanket_order,
+				"against_blanket": args.against_blanket,
 				"material_request": args.material_request,
 				"material_request_item": args.material_request_item,
 			},

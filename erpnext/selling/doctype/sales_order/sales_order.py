@@ -64,8 +64,9 @@ class SalesOrder(SellingController):
 		from erpnext.stock.doctype.packed_item.packed_item import PackedItem
 
 		additional_discount_percentage: DF.Float
-		address_display: DF.SmallText | None
+		address_display: DF.TextEditor | None
 		advance_paid: DF.Currency
+		advance_payment_status: DF.Literal["Not Requested", "Requested", "Partially Paid", "Fully Paid"]
 		amended_from: DF.Link | None
 		amount_eligible_for_commission: DF.Currency
 		apply_discount_on: DF.Literal["", "Grand Total", "Net Total"]
@@ -83,7 +84,7 @@ class SalesOrder(SellingController):
 		commission_rate: DF.Float
 		company: DF.Link
 		company_address: DF.Link | None
-		company_address_display: DF.SmallText | None
+		company_address_display: DF.TextEditor | None
 		contact_display: DF.SmallText | None
 		contact_email: DF.Data | None
 		contact_mobile: DF.SmallText | None
@@ -103,7 +104,7 @@ class SalesOrder(SellingController):
 		]
 		disable_rounded_total: DF.Check
 		discount_amount: DF.Currency
-		dispatch_address: DF.SmallText | None
+		dispatch_address: DF.TextEditor | None
 		dispatch_address_name: DF.Link | None
 		from_date: DF.Date | None
 		grand_total: DF.Currency
@@ -122,7 +123,7 @@ class SalesOrder(SellingController):
 		naming_series: DF.Literal["SAL-ORD-.YYYY.-"]
 		net_total: DF.Currency
 		order_type: DF.Literal["", "Sales", "Maintenance", "Shopping Cart"]
-		other_charges_calculation: DF.LongText | None
+		other_charges_calculation: DF.TextEditor | None
 		packed_items: DF.Table[PackedItem]
 		party_account_currency: DF.Link | None
 		payment_schedule: DF.Table[PaymentSchedule]
@@ -146,7 +147,7 @@ class SalesOrder(SellingController):
 		select_print_heading: DF.Link | None
 		selling_price_list: DF.Link
 		set_warehouse: DF.Link | None
-		shipping_address: DF.SmallText | None
+		shipping_address: DF.TextEditor | None
 		shipping_address_name: DF.Link | None
 		shipping_rule: DF.Link | None
 		skip_delivery_note: DF.Check
@@ -155,6 +156,7 @@ class SalesOrder(SellingController):
 			"",
 			"Draft",
 			"On Hold",
+			"To Pay",
 			"To Deliver and Bill",
 			"To Bill",
 			"To Deliver",
@@ -223,6 +225,8 @@ class SalesOrder(SellingController):
 			self.billing_status = "Not Billed"
 		if not self.delivery_status:
 			self.delivery_status = "Not Delivered"
+		if not self.advance_payment_status:
+			self.advance_payment_status = "Not Requested"
 
 		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 
@@ -249,7 +253,8 @@ class SalesOrder(SellingController):
 					frappe.msgprint(
 						_("Warning: Sales Order {0} already exists against Customer's Purchase Order {1}").format(
 							frappe.bold(so[0][0]), frappe.bold(self.po_no)
-						)
+						),
+						alert=True,
 					)
 				else:
 					frappe.throw(
@@ -513,6 +518,9 @@ class SalesOrder(SellingController):
 	def on_update(self):
 		pass
 
+	def on_update_after_submit(self):
+		self.check_credit_limit()
+
 	def before_update_after_submit(self):
 		self.validate_po()
 		self.validate_drop_ship()
@@ -641,7 +649,7 @@ class SalesOrder(SellingController):
 					if not frappe.get_cached_value("Item", item.item_code, "has_serial_no"):
 						frappe.throw(
 							_(
-								"Item {0} has no Serial No. Only serilialized items can have delivery based on Serial No"
+								"Item {0} has no Serial No. Only serialized items can have delivery based on Serial No"
 							).format(item.item_code)
 						)
 					if not frappe.db.exists("BOM", {"item": item.item_code, "is_active": 1}):
@@ -745,6 +753,13 @@ def get_list_context(context=None):
 	)
 
 	return list_context
+
+
+@frappe.whitelist()
+def is_enable_cutoff_date_on_bulk_delivery_note_creation():
+	return frappe.db.get_single_value(
+		"Selling Settings", "enable_cutoff_date_on_bulk_delivery_note_creation"
+	)
 
 
 @frappe.whitelist()
@@ -904,6 +919,7 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 		target.run_method("set_missing_values")
 		target.run_method("set_po_nos")
 		target.run_method("calculate_taxes_and_totals")
+		target.run_method("set_use_serial_batch_fields")
 
 		if source.company_address:
 			target.update({"company_address": source.company_address})
@@ -929,6 +945,9 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 		# make_mapped_doc sets js `args` into `frappe.flags.args`
 		if frappe.flags.args and frappe.flags.args.delivery_dates:
 			if cstr(doc.delivery_date) not in frappe.flags.args.delivery_dates:
+				return False
+		if frappe.flags.args and frappe.flags.args.until_delivery_date:
+			if cstr(doc.delivery_date) > frappe.flags.args.until_delivery_date:
 				return False
 
 		return abs(doc.delivered_qty) < abs(doc.qty) and doc.delivered_by_supplier != 1
@@ -1005,6 +1024,11 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 				for idx, item in enumerate(target_doc.items):
 					item.idx = idx + 1
 
+	if not kwargs.skip_item_mapping and frappe.flags.bulk_transaction and not target_doc.items:
+		# the (date) condition filter resulted in an unintendedly created empty DN; remove it
+		del target_doc
+		return
+
 	# Should be called after mapping items.
 	set_missing_values(so, target_doc)
 
@@ -1024,6 +1048,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		target.run_method("set_missing_values")
 		target.run_method("set_po_nos")
 		target.run_method("calculate_taxes_and_totals")
+		target.run_method("set_use_serial_batch_fields")
 
 		if source.company_address:
 			target.update({"company_address": source.company_address})
@@ -1606,7 +1631,11 @@ def create_pick_list(source_name, target_doc=None):
 		"Sales Order",
 		source_name,
 		{
-			"Sales Order": {"doctype": "Pick List", "validation": {"docstatus": ["=", 1]}},
+			"Sales Order": {
+				"doctype": "Pick List",
+				"field_map": {"set_warehouse": "parent_warehouse"},
+				"validation": {"docstatus": ["=", 1]},
+			},
 			"Sales Order Item": {
 				"doctype": "Pick List Item",
 				"field_map": {"parent": "sales_order", "name": "sales_order_item"},

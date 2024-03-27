@@ -42,6 +42,39 @@ class TestQuotation(FrappeTestCase):
 
 		self.assertTrue(sales_order.get("payment_schedule"))
 
+	def test_gross_profit(self):
+		from erpnext.stock.doctype.item.test_item import make_item
+		from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+		from erpnext.stock.get_item_details import insert_item_price
+
+		item_doc = make_item("_Test Item for Gross Profit", {"is_stock_item": 1})
+		item_code = item_doc.name
+		make_stock_entry(item_code=item_code, qty=10, rate=100, target="_Test Warehouse - _TC")
+
+		selling_price_list = frappe.get_all("Price List", filters={"selling": 1}, limit=1)[0].name
+		frappe.db.set_single_value("Stock Settings", "auto_insert_price_list_rate_if_missing", 1)
+		insert_item_price(
+			frappe._dict(
+				{
+					"item_code": item_code,
+					"price_list": selling_price_list,
+					"price_list_rate": 300,
+					"rate": 300,
+					"conversion_factor": 1,
+					"discount_amount": 0.0,
+					"currency": frappe.db.get_value("Price List", selling_price_list, "currency"),
+					"uom": item_doc.stock_uom,
+				}
+			)
+		)
+
+		quotation = make_quotation(
+			item_code=item_code, qty=1, rate=300, selling_price_list=selling_price_list
+		)
+		self.assertEqual(quotation.items[0].valuation_rate, 100)
+		self.assertEqual(quotation.items[0].gross_profit, 200)
+		frappe.db.set_single_value("Stock Settings", "auto_insert_price_list_rate_if_missing", 0)
+
 	def test_maintain_rate_in_sales_cycle_is_enforced(self):
 		from erpnext.selling.doctype.quotation.quotation import make_sales_order
 
@@ -99,7 +132,6 @@ class TestQuotation(FrappeTestCase):
 		self.assertEqual(sales_order.get("items")[0].prevdoc_docname, quotation.name)
 		self.assertEqual(sales_order.customer, "_Test Customer")
 
-		sales_order.delivery_date = "2014-01-01"
 		sales_order.naming_series = "_T-Quotation-"
 		sales_order.transaction_date = nowdate()
 		sales_order.insert()
@@ -132,7 +164,6 @@ class TestQuotation(FrappeTestCase):
 		self.assertEqual(sales_order.get("items")[0].prevdoc_docname, quotation.name)
 		self.assertEqual(sales_order.customer, "_Test Customer")
 
-		sales_order.delivery_date = "2014-01-01"
 		sales_order.naming_series = "_T-Quotation-"
 		sales_order.transaction_date = nowdate()
 		sales_order.insert()
@@ -592,6 +623,77 @@ class TestQuotation(FrappeTestCase):
 		sales_order.submit()
 		quotation.reload()
 		self.assertEqual(quotation.status, "Ordered")
+
+	def test_uom_validation(self):
+		from erpnext.stock.doctype.item.test_item import make_item
+
+		item = "_Test Item FOR UOM Validation"
+		make_item(item, {"is_stock_item": 1})
+
+		if not frappe.db.exists("UOM", "lbs"):
+			frappe.get_doc({"doctype": "UOM", "uom_name": "lbs", "must_be_whole_number": 1}).insert()
+		else:
+			frappe.db.set_value("UOM", "lbs", "must_be_whole_number", 1)
+
+		quotation = make_quotation(item_code=item, qty=1, rate=100, do_not_submit=1)
+		quotation.items[0].uom = "lbs"
+		quotation.items[0].conversion_factor = 2.23
+		self.assertRaises(frappe.ValidationError, quotation.save)
+
+	def test_item_tax_template_for_quotation(self):
+		from erpnext.stock.doctype.item.test_item import make_item
+
+		if not frappe.db.exists("Account", {"account_name": "_Test Vat", "company": "_Test Company"}):
+			frappe.get_doc(
+				{
+					"doctype": "Account",
+					"account_name": "_Test Vat",
+					"company": "_Test Company",
+					"account_type": "Tax",
+					"root_type": "Asset",
+					"is_group": 0,
+					"parent_account": "Tax Assets - _TC",
+					"tax_rate": 10,
+				}
+			).insert()
+
+		if not frappe.db.exists("Item Tax Template", "Vat Template - _TC"):
+			doc = frappe.get_doc(
+				{
+					"doctype": "Item Tax Template",
+					"name": "Vat Template",
+					"title": "Vat Template",
+					"company": "_Test Company",
+					"taxes": [
+						{
+							"tax_type": "_Test Vat - _TC",
+							"tax_rate": 5,
+						}
+					],
+				}
+			).insert()
+
+		item_doc = make_item("_Test Item Tax Template QTN", {"is_stock_item": 1})
+		if not frappe.db.exists(
+			"Item Tax", {"parent": item_doc.name, "item_tax_template": "Vat Template - _TC"}
+		):
+			item_doc.append("taxes", {"item_tax_template": "Vat Template - _TC"})
+			item_doc.save()
+
+		quotation = make_quotation(
+			item_code="_Test Item Tax Template QTN", qty=1, rate=100, do_not_submit=1
+		)
+		self.assertFalse(quotation.taxes)
+
+		quotation.append_taxes_from_item_tax_template()
+		quotation.save()
+		self.assertTrue(quotation.taxes)
+		for row in quotation.taxes:
+			self.assertEqual(row.account_head, "_Test Vat - _TC")
+			self.assertAlmostEqual(row.base_tax_amount, quotation.total * 5 / 100)
+
+		item_doc.taxes = []
+		item_doc.save()
 
 
 test_records = frappe.get_test_records("Quotation")

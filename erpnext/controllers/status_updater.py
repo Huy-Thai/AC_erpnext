@@ -54,6 +54,10 @@ status_map = {
 			"eval:self.per_delivered < 100 and self.per_billed >= 100 and self.docstatus == 1 and not self.skip_delivery_note",
 		],
 		[
+			"To Pay",
+			"eval:self.advance_payment_status == 'Requested' and self.docstatus == 1",
+		],
+		[
 			"Completed",
 			"eval:(self.per_delivered >= 100 or self.skip_delivery_note) and self.per_billed >= 100 and self.docstatus == 1",
 		],
@@ -63,14 +67,18 @@ status_map = {
 	],
 	"Purchase Order": [
 		["Draft", None],
-		[
-			"To Receive and Bill",
-			"eval:self.per_received < 100 and self.per_billed < 100 and self.docstatus == 1",
-		],
 		["To Bill", "eval:self.per_received >= 100 and self.per_billed < 100 and self.docstatus == 1"],
 		[
 			"To Receive",
 			"eval:self.per_received < 100 and self.per_billed == 100 and self.docstatus == 1",
+		],
+		[
+			"To Receive and Bill",
+			"eval:self.per_received < 100 and self.per_billed < 100 and self.docstatus == 1",
+		],
+		[
+			"To Pay",
+			"eval:self.advance_payment_status == 'Initiated' and self.docstatus == 1",
 		],
 		[
 			"Completed",
@@ -91,7 +99,8 @@ status_map = {
 	],
 	"Purchase Receipt": [
 		["Draft", None],
-		["To Bill", "eval:self.per_billed < 100 and self.docstatus == 1"],
+		["To Bill", "eval:self.per_billed == 0 and self.docstatus == 1"],
+		["Partly Billed", "eval:self.per_billed > 0 and self.per_billed < 100 and self.docstatus == 1"],
 		["Return Issued", "eval:self.per_returned == 100 and self.docstatus == 1"],
 		["Completed", "eval:self.per_billed == 100 and self.docstatus == 1"],
 		["Cancelled", "eval:self.docstatus==2"],
@@ -568,6 +577,7 @@ class StatusUpdater(Document):
 			ref_doc.set_status(update=True)
 
 
+@frappe.request_cache
 def get_allowance_for(
 	item_code,
 	item_allowance=None,
@@ -597,20 +607,20 @@ def get_allowance_for(
 				global_amount_allowance,
 			)
 
-	qty_allowance, over_billing_allowance = frappe.db.get_value(
+	qty_allowance, over_billing_allowance = frappe.get_cached_value(
 		"Item", item_code, ["over_delivery_receipt_allowance", "over_billing_allowance"]
 	)
 
 	if qty_or_amount == "qty" and not qty_allowance:
 		if global_qty_allowance == None:
 			global_qty_allowance = flt(
-				frappe.db.get_single_value("Stock Settings", "over_delivery_receipt_allowance")
+				frappe.get_cached_value("Stock Settings", None, "over_delivery_receipt_allowance")
 			)
 		qty_allowance = global_qty_allowance
 	elif qty_or_amount == "amount" and not over_billing_allowance:
 		if global_amount_allowance == None:
 			global_amount_allowance = flt(
-				frappe.db.get_single_value("Accounts Settings", "over_billing_allowance")
+				frappe.get_cached_value("Accounts Settings", None, "over_billing_allowance")
 			)
 		over_billing_allowance = global_amount_allowance
 

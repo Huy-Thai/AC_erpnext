@@ -11,7 +11,6 @@ from erpnext.accounts.doctype.loyalty_program.loyalty_program import validate_lo
 from erpnext.accounts.doctype.payment_request.payment_request import make_payment_request
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
 	SalesInvoice,
-	get_bank_cash_account,
 	get_mode_of_payment_info,
 	update_multi_mode_option,
 )
@@ -48,7 +47,7 @@ class POSInvoice(SalesInvoice):
 
 		account_for_change_amount: DF.Link | None
 		additional_discount_percentage: DF.Float
-		address_display: DF.SmallText | None
+		address_display: DF.TextEditor | None
 		advances: DF.Table[SalesInvoiceAdvance]
 		against_income_account: DF.SmallText | None
 		allocate_advances_automatically: DF.Check
@@ -73,7 +72,7 @@ class POSInvoice(SalesInvoice):
 		commission_rate: DF.Float
 		company: DF.Link
 		company_address: DF.Link | None
-		company_address_display: DF.SmallText | None
+		company_address_display: DF.TextEditor | None
 		consolidated_invoice: DF.Link | None
 		contact_display: DF.SmallText | None
 		contact_email: DF.Data | None
@@ -110,7 +109,7 @@ class POSInvoice(SalesInvoice):
 		loyalty_redemption_cost_center: DF.Link | None
 		naming_series: DF.Literal["ACC-PSINV-.YYYY.-"]
 		net_total: DF.Currency
-		other_charges_calculation: DF.LongText | None
+		other_charges_calculation: DF.TextEditor | None
 		outstanding_amount: DF.Currency
 		packed_items: DF.Table[PackedItem]
 		paid_amount: DF.Currency
@@ -139,7 +138,7 @@ class POSInvoice(SalesInvoice):
 		selling_price_list: DF.Link
 		set_posting_time: DF.Check
 		set_warehouse: DF.Link | None
-		shipping_address: DF.SmallText | None
+		shipping_address: DF.TextEditor | None
 		shipping_address_name: DF.Link | None
 		shipping_rule: DF.Link | None
 		source: DF.Link | None
@@ -208,7 +207,6 @@ class POSInvoice(SalesInvoice):
 		self.validate_stock_availablility()
 		self.validate_return_items_qty()
 		self.set_status()
-		self.set_account_for_mode_of_payment()
 		self.validate_pos()
 		self.validate_payment_amount()
 		self.validate_loyalty_transaction()
@@ -371,7 +369,7 @@ class POSInvoice(SalesInvoice):
 			if d.get("qty") > 0:
 				frappe.throw(
 					_(
-						"Row #{}: You cannot add postive quantities in a return invoice. Please remove item {} to complete the return."
+						"Row #{}: You cannot add positive quantities in a return invoice. Please remove item {} to complete the return."
 					).format(d.idx, frappe.bold(d.item_code)),
 					title=_("Invalid Item"),
 				)
@@ -643,11 +641,6 @@ class POSInvoice(SalesInvoice):
 			update_multi_mode_option(self, pos_profile)
 			self.paid_amount = 0
 
-	def set_account_for_mode_of_payment(self):
-		for pay in self.payments:
-			if not pay.account:
-				pay.account = get_bank_cash_account(pay.mode_of_payment, self.company).get("account")
-
 	@frappe.whitelist()
 	def create_payment_request(self):
 		for pay in self.payments:
@@ -793,7 +786,7 @@ def make_merge_log(invoices):
 		invoices = json.loads(invoices)
 
 	if len(invoices) == 0:
-		frappe.throw(_("Atleast one invoice has to be selected."))
+		frappe.throw(_("At least one invoice has to be selected."))
 
 	merge_log = frappe.new_doc("POS Invoice Merge Log")
 	merge_log.posting_date = getdate(nowdate())
