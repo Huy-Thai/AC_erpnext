@@ -321,6 +321,7 @@ def split_str_get_key(input_data, char_split):
 
 async def handle_get_data_raws(body_query, num_start, num_end, date_row_num):
     promises = []
+    RANGE_COLUMN = "VZ"
     async with ClientSession() as session:
         msGraph = MSGraph(
             session=session,
@@ -330,11 +331,11 @@ async def handle_get_data_raws(body_query, num_start, num_end, date_row_num):
             worksheet_name=None,
         )
 
-        dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:MZ{date_row_num}")
+        dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:{RANGE_COLUMN}{date_row_num}")
         date_object = format_dates_with_excel_style(dates=dates)
 
         for row_num in range(num_start, num_end):
-            range_excel_rows = f"A{row_num}:MZ{row_num}"
+            range_excel_rows = f"A{row_num}:{RANGE_COLUMN}{row_num}"
             promise = asyncio.ensure_future(msGraph.get_data_on_excel_file_by_range(body=body_query, row_num=row_num, range_rows=range_excel_rows))
             promises.append(promise)
         row_object = await asyncio.gather(*promises)
