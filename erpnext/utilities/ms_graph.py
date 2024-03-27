@@ -330,7 +330,7 @@ async def handle_get_data_raws(body_query, num_start, num_end, date_row_num):
             worksheet_name=None,
         )
 
-        dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:MZ{date_row_num}")
+        dates = await msGraph.get_data_on_excel_file_by_range(body=body_query, range_rows=f"Q{date_row_num}:VZ{date_row_num}")
         date_object = format_dates_with_excel_style(dates=dates)
 
         for row_num in range(num_start, num_end):
