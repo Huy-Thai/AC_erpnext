@@ -134,7 +134,6 @@ class Project(Document):
 				subject=task_details.subject,
 				project=self.name,
 				status="Open",
-				priority = "Medium",
 				# exp_start_date=self.calculate_start_date(task_details),
 				# exp_end_date=self.calculate_end_date(task_details),
 				description=task_details.description,
