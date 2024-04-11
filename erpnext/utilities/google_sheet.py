@@ -7,7 +7,7 @@ from google.oauth2.service_account import Credentials
 
 
 @cache
-class GGSheet():
+class GGSheet:
     client_agc = None
 
     def __init__(self, url_file, worksheet_name):
