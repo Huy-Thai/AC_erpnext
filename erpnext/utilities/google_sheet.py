@@ -5,6 +5,8 @@ from functools import cache
 from dateutil import parser
 from google.oauth2.service_account import Credentials
 
+import sys
+sys.path.append('.')
 
 @cache
 class GGSheet:
