@@ -620,9 +620,9 @@ def update_timesheet(
 
 
 async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
-    promises = []
     ggSheet = GGSheet(url_file, worksheet_name)
     results = await ggSheet.get_row_values_by_range(row_of_date=row_of_date, range_start=range_start, range_end=range_end)
+    print(results)
     row_values = results[0]
     row_date = results[1]
     for value in row_values:
