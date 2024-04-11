@@ -5,8 +5,6 @@ from functools import cache
 from dateutil import parser
 from google.oauth2.service_account import Credentials
 
-import sys
-sys.path.insert(1, '.')
 
 @cache
 class GGSheet:
@@ -18,7 +16,7 @@ class GGSheet:
 
 
     def __credentials(self):
-        creds = Credentials.from_service_account_file("sheet_service_account.json")
+        creds = Credentials.from_service_account_file("./erpnext/sheet_service_account.json")
         scoped = creds.with_scopes([
             "https://spreadsheets.google.com/feeds",
             "https://www.googleapis.com/auth/spreadsheets",
