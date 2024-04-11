@@ -61,21 +61,17 @@ class GGSheet:
 
 
     async def get_row_values_by_range(self, row_of_date, range_start, range_end):
-        try:
-            date_values = await self.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
-            ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
-            row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
+        date_values = await self.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
+        ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
+        row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
-            promises = []
-            for num in range(range_start, range_end):
-                promise = asyncio.ensure_future(self.get_values_with_excel_style(num_of_row=num, seed=1, is_return_num=True))
-                promises.append(promise)
-            row_values = await asyncio.gather(*promises)
+        promises = []
+        for num in range(range_start, range_end):
+            promise = asyncio.ensure_future(self.get_values_with_excel_style(num_of_row=num, seed=1, is_return_num=True))
+            promises.append(promise)
+        row_values = await asyncio.gather(*promises)
 
-            return row_values, row_date
-        except Exception as err:
-            print(f"Get data on sheet file by range failed with: {err}")
-            return None
+        return row_values, row_date
 
 
 def mapping_cell_with_dates_raw(cell, row_date):
