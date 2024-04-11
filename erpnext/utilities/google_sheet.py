@@ -1,3 +1,4 @@
+import os
 import asyncio
 import gspread_asyncio
 
@@ -5,8 +6,6 @@ from functools import cache
 from dateutil import parser
 from google.oauth2.service_account import Credentials
 
-import sys
-sys.path.append('.')
 
 @cache
 class GGSheet:
@@ -18,6 +17,8 @@ class GGSheet:
 
 
     def __credentials(self):
+        print("PATH: ")
+        print(os.listdir(os.pardir))
         creds = Credentials.from_service_account_file("erpnext/utilities/sheet_service_account.json")
         scoped = creds.with_scopes([
             "https://spreadsheets.google.com/feeds",
