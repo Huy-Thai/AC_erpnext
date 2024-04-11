@@ -622,7 +622,9 @@ def update_timesheet(
 async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
     promises = []
     ggSheet = GGSheet(url_file, worksheet_name)
-    row_values, row_date = await ggSheet.get_row_values_by_range(row_of_date=row_of_date, range_start=range_start, range_end=range_end)
+    results = await ggSheet.get_row_values_by_range(row_of_date=row_of_date, range_start=range_start, range_end=range_end)
+    row_values = results[0]
+    row_date = results[1]
     for value in row_values:
         for num_of_row, cell in value.items():
             if cell is None or cell["B"] == "Pa": continue

@@ -6,8 +6,17 @@ from dateutil import parser
 from google.oauth2.service_account import Credentials
 
 
+class SingletonMeta(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
 @cache
-class GGSheet():
+class GGSheet(metaclass=SingletonMeta):
     client_agc = None
 
     def __init__(self, url_file, worksheet_name):
