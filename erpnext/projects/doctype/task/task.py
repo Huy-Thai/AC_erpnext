@@ -13,7 +13,7 @@ from frappe.utils.data import format_date
 from frappe.utils.nestedset import NestedSet
 
 from erpnext.utilities.ms_graph import (
-	TaskModel, ParentTaskModel, update_column_excel_file, hash_str_8_dig, split_str_get_key )
+	TaskModel, ParentTaskModel, hash_str_8_dig, split_str_get_key )
 
 
 class CircularReferenceError(frappe.ValidationError):
@@ -435,7 +435,7 @@ def on_doctype_update():
 	frappe.db.add_index("Task", ["lft", "rgt"])
 	
 
-def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_query, payload: ParentTaskModel):
+def process_handle_parent_task_by_excel(parent_task_id, payload: ParentTaskModel):
     prev_hash_key, _, __ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
     new_key = f"{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
     new_hash_key = hash_str_8_dig(new_key)
@@ -454,10 +454,9 @@ def process_handle_parent_task_by_excel(parent_task_id, ms_access_token, body_qu
         frappe.db.commit()
 
         A_column_value = f"{new_hash_key}--{parent_task_id}"
-        update_column_excel_file(ms_access_token, body_query, payload.col_number, A_column_value)
-        return
+        return A_column_value
 
-    return
+    return None
 
 def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
 	if task_id == "":

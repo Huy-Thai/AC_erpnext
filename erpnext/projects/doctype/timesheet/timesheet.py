@@ -13,11 +13,12 @@ from frappe.utils import add_to_date, flt, get_datetime, getdate, time_diff_in_h
 from erpnext.controllers.queries import get_match_cond
 from erpnext.setup.utils import get_exchange_rate
 from erpnext.projects.doctype.task.task import process_handle_task_by_excel, process_handle_parent_task_by_excel
+from erpnext.utilities.google_sheet import ( GGSheet, mapping_cell_with_dates_raw )
 from erpnext.utilities.ms_graph import (
     EXCEL_TASK_STATUS, EXCEL_TIME_SHEET_STATUS, TaskModel, ParentTaskModel,
 	EXCEL_TYPE_PARENT_TASK, EXCEL_TIME_SHEET_DOC_STATUS,
 	handle_get_data_raws, update_column_excel_file,
-	hash_str_8_dig, split_str_get_key, mapping_cell_with_dates_raw )
+	hash_str_8_dig, split_str_get_key )
 
 
 class OverlapError(frappe.ValidationError):
@@ -618,28 +619,18 @@ def update_timesheet(
     return time_sheet_doc
 
 
-async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num, company="ACONS"):
-    data_raws = await handle_get_data_raws(body_query, num_start, num_end, date_row_num)
-    time_sheets_raw = data_raws[0]
-    dates_raw = data_raws[1]
-    ms_access_token = data_raws[2]
-
-    for sheet in time_sheets_raw:
-        if sheet is None: continue
-        for row_num in sheet:
-            cell = sheet[row_num]
+async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
+    promises = []
+    ggSheet = GGSheet(url_file, worksheet_name)
+    row_values, row_date = await ggSheet.get_row_values_by_range(row_of_date=row_of_date, range_start=range_start, range_end=range_end)
+    for value in row_values:
+        for num_of_row, cell in value.items():
             if cell is None or cell["B"] == "Pa": continue
-            dates, date_string = mapping_cell_with_dates_raw(cell, dates_raw)
+            date, date_string = mapping_cell_with_dates_raw(cell, row_date)
 
             project_code = cell["C"]
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
-
-            task = cell["O"]
-            activity_code = cell["N"]
-            employee_name = cell["M"]
-            progress = cell["L"].replace("%", "")
-            excel_task_status = EXCEL_TASK_STATUS[cell["P"]]
 
             parent_task = frappe.db.get_value(
 				"Task",
@@ -650,26 +641,33 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 				}, ["name"])
 
             if parent_task is not None and cell["B"] == "P":
-                process_handle_parent_task_by_excel(
+                A_column_key = process_handle_parent_task_by_excel(
 					parent_task,
 					ms_access_token,
 					body_query,
-					ParentTaskModel(row_num, cell),
+					ParentTaskModel(num_of_row, cell),
 				)
+                await ggSheet.update_worksheet(num_of_row, A_column_key)
                 continue
+
+            task = cell["O"]
+            activity_code = cell["N"]
+            employee_name = cell["M"]
+            progress = cell["L"].replace("%", "")
+            excel_task_status = EXCEL_TASK_STATUS[cell["P"]]
 
             if employee_name == "" or task == "": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{excel_task_status};{date_string}"
             new_hash_key = hash_str_8_dig(new_key)
             prev_hash_key, task_id, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
-
+            
             if prev_hash_key == "" or prev_hash_key != new_hash_key:
                 ts_status = EXCEL_TIME_SHEET_STATUS[excel_task_status]
                 ts_doc_status = EXCEL_TIME_SHEET_DOC_STATUS[ts_status]
                 emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
                 if emp_name is None: continue
 
-                task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(row_num, cell, company))
+                task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(num_of_row, cell, company))
                 if time_sheet_id == "":
                     new_time_sheet_doc = create_new_timesheet(
 						dates,
@@ -681,8 +679,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 						task_doc,
 						company,
 					)
-                    A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-                    update_column_excel_file(ms_access_token, body_query, row_num, A_column)
+                    A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
+                    await ggSheet.update_worksheet(num_of_row, A_column_key)
                     continue
                 
                 # Optimize logic handle flow on below
@@ -704,8 +702,8 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 						task_doc,
 						company,
                     )
-                    A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-                    update_column_excel_file(ms_access_token, body_query, row_num, A_column)
+                    A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
+                    await ggSheet.update_worksheet(num_of_row, A_column_key)
                     continue
 
                 time_sheet_doc = update_timesheet(
@@ -719,97 +717,212 @@ async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num
 					activity_code,
 					task_doc,
                 )
-                A_column = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
-                update_column_excel_file(ms_access_token, body_query, row_num, A_column)
+                A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
+                await ggSheet.update_worksheet(num_of_row, A_column_key)
 
 
-def process_handle_timesheet_from_excel_team_2_q4():
-    num_start=6
-    num_end=500
-    date_row_num=3
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
-        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
-        'worksheet_id': '{930F8F2B-9F98-4813-A052-DBF499042B0C}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
-
-def process_handle_timesheet_from_excel_team_civil_q4():
-    num_start=6
-    num_end=500
-    date_row_num=3
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,839d16c5-c2a9-434c-9696-0101f0f021f2,fa307a92-13ac-4b44-be8e-03bfb18ab2d9',
-        'file_id': '01KTKY3ULLYD5BEFK7XJHJ5RDY44M26YND',
-        'worksheet_id': '{930F8F2B-9F98-4813-A052-DBF499042B0C}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
-
-def process_handle_timesheet_from_excel_cad():
-    num_start=6
-    num_end=500
-    date_row_num=3
-    company="CAD"
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,c98ba12c-b5dd-4dc4-b11e-33fe796a2b49,3ceb4e77-07b4-4ca8-bb12-e6ffaeeb83c5',
-        'file_id': '01VETGORPM4B6QKSRZBZB3622AIJ373SYU',
-        'worksheet_id': '{170D7723-C411-44A5-B6DD-1E9F0951D6E3}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num, company))
+def process_handle_timesheet_from_sheet_team_2():
+    url_file="https://docs.google.com/spreadsheets/d/1w-4LDWssQi2YzSzy2Ud85KxCJ1KrzlAGXR3948orsXM/edit#gid=1994946052"
+    worksheet_name="Q1"
+    row_of_date="3"
+    range_start="6"
+    range_end="30"
+    company="ACONS"
+    asyncio.run(handle_timesheet(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
 
-# =============== OLD FILE ====================
-def process_handle_timesheet_from_excel_team_2_q123_1():
-    num_start=6
-    num_end=500
-    date_row_num=3
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
-        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
-        'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+# async def handler_insert_timesheets(body_query, num_start, num_end, date_row_num, company="ACONS"):
+#     data_raws = await handle_get_data_raws(body_query, num_start, num_end, date_row_num)
+#     time_sheets_raw = data_raws[0]
+#     dates_raw = data_raws[1]
+#     ms_access_token = data_raws[2]
 
-def process_handle_timesheet_from_excel_team_2_q123_2():
-    num_start=500
-    num_end=1000
-    date_row_num=3
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
-        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
-        'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+#     for sheet in time_sheets_raw:
+#         if sheet is None: continue
+#         for row_num in sheet:
+#             cell = sheet[row_num]
+#             if cell is None or cell["B"] == "Pa": continue
+#             dates, date_string = mapping_cell_with_dates_raw(cell, dates_raw)
 
-def process_handle_timesheet_from_excel_team_2_q123_3():
-    num_start=1000
-    num_end=1500
-    date_row_num=3
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
-        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
-        'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+#             project_code = cell["C"]
+#             is_project_exist = frappe.db.exists("Project", project_code)
+#             if not is_project_exist: continue
 
-def process_handle_timesheet_from_excel_team_2_q123_4():
-    num_start=1500
-    num_end=2000
-    date_row_num=3
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
-        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
-        'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+#             task = cell["O"]
+#             activity_code = cell["N"]
+#             employee_name = cell["M"]
+#             progress = cell["L"].replace("%", "")
+#             excel_task_status = EXCEL_TASK_STATUS[cell["P"]]
 
-def process_handle_timesheet_from_excel_team_2_q123_5():
-    num_start=2000
-    num_end=2720
-    date_row_num=3
-    body_query={
-        'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
-        'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
-        'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
-    }
-    asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+#             parent_task = frappe.db.get_value(
+# 				"Task",
+# 	            {
+# 					"subject": EXCEL_TYPE_PARENT_TASK[cell["H"]],
+# 					"project": project_code,
+# 					"is_group": 1,
+# 				}, ["name"])
+
+#             if parent_task is not None and cell["B"] == "P":
+#                 process_handle_parent_task_by_excel(
+# 					parent_task,
+# 					ms_access_token,
+# 					body_query,
+# 					ParentTaskModel(row_num, cell),
+# 				)
+#                 continue
+
+#             if employee_name == "" or task == "": continue
+#             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{excel_task_status};{date_string}"
+#             new_hash_key = hash_str_8_dig(new_key)
+#             prev_hash_key, task_id, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
+
+#             if prev_hash_key == "" or prev_hash_key != new_hash_key:
+#                 ts_status = EXCEL_TIME_SHEET_STATUS[excel_task_status]
+#                 ts_doc_status = EXCEL_TIME_SHEET_DOC_STATUS[ts_status]
+#                 emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
+#                 if emp_name is None: continue
+
+#                 task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(row_num, cell, company))
+#                 if time_sheet_id == "":
+#                     new_time_sheet_doc = create_new_timesheet(
+# 						dates,
+# 						project_code,
+# 						emp_name,
+# 						ts_status,
+# 						excel_task_status,
+# 						activity_code,
+# 						task_doc,
+# 						company,
+# 					)
+#                     A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
+#                     update_column_excel_file(ms_access_token, body_query, row_num, A_column)
+#                     continue
+                
+#                 # Optimize logic handle flow on below
+#                 pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
+#                 if pre_time_sheet is not None and (pre_time_sheet.status == "Submitted" or pre_time_sheet.status == "Cancelled"):
+#                     if pre_time_sheet.status == "Submitted":
+#                         frappe.db.set_value("Timesheet", time_sheet_id, {
+#                             "status": "Cancelled",
+#                             "docstatus": 2,
+#                         })
+
+#                     new_time_sheet_doc = create_new_timesheet(
+#                         dates,
+# 						project_code,
+# 						emp_name,
+# 						ts_status,
+# 						excel_task_status,
+# 						activity_code,
+# 						task_doc,
+# 						company,
+#                     )
+#                     A_column = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
+#                     update_column_excel_file(ms_access_token, body_query, row_num, A_column)
+#                     continue
+
+#                 time_sheet_doc = update_timesheet(
+#                     time_sheet_id,
+# 					dates,
+# 					project_code,
+# 					emp_name,
+# 					ts_status,
+#                     ts_doc_status,
+# 					excel_task_status,
+# 					activity_code,
+# 					task_doc,
+#                 )
+#                 A_column = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
+#                 update_column_excel_file(ms_access_token, body_query, row_num, A_column)
+
+
+# def process_handle_timesheet_from_excel_team_2_q4():
+#     num_start=6
+#     num_end=500
+#     date_row_num=3
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+#         'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+#         'worksheet_id': '{930F8F2B-9F98-4813-A052-DBF499042B0C}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+
+# def process_handle_timesheet_from_excel_team_civil_q4():
+#     num_start=6
+#     num_end=500
+#     date_row_num=3
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,839d16c5-c2a9-434c-9696-0101f0f021f2,fa307a92-13ac-4b44-be8e-03bfb18ab2d9',
+#         'file_id': '01KTKY3ULLYD5BEFK7XJHJ5RDY44M26YND',
+#         'worksheet_id': '{930F8F2B-9F98-4813-A052-DBF499042B0C}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+
+# def process_handle_timesheet_from_excel_cad():
+#     num_start=6
+#     num_end=500
+#     date_row_num=3
+#     company="CAD"
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,c98ba12c-b5dd-4dc4-b11e-33fe796a2b49,3ceb4e77-07b4-4ca8-bb12-e6ffaeeb83c5',
+#         'file_id': '01VETGORPM4B6QKSRZBZB3622AIJ373SYU',
+#         'worksheet_id': '{170D7723-C411-44A5-B6DD-1E9F0951D6E3}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num, company))
+
+
+# # =============== OLD FILE ====================
+# def process_handle_timesheet_from_excel_team_2_q123_1():
+#     num_start=6
+#     num_end=500
+#     date_row_num=3
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+#         'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+#         'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+
+# def process_handle_timesheet_from_excel_team_2_q123_2():
+#     num_start=500
+#     num_end=1000
+#     date_row_num=3
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+#         'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+#         'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+
+# def process_handle_timesheet_from_excel_team_2_q123_3():
+#     num_start=1000
+#     num_end=1500
+#     date_row_num=3
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+#         'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+#         'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+
+# def process_handle_timesheet_from_excel_team_2_q123_4():
+#     num_start=1500
+#     num_end=2000
+#     date_row_num=3
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+#         'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+#         'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
+
+# def process_handle_timesheet_from_excel_team_2_q123_5():
+#     num_start=2000
+#     num_end=2720
+#     date_row_num=3
+#     body_query={
+#         'site_id': 'aconsvn.sharepoint.com,dcdd5034-9e4b-464c-96a0-2946ecc97a29,eead5dea-f1c3-4008-89e8-f0f7882b734d',
+#         'file_id': '01EFHQ6NEP2FMZTM7OHNA324KFLBBBNBSY',
+#         'worksheet_id': '{70D98D77-3B43-4673-85F9-7916297C39A9}',
+#     }
+#     asyncio.run(handler_insert_timesheets(body_query, num_start, num_end, date_row_num))
