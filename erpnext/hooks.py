@@ -408,14 +408,14 @@ scheduler_events = {
 		# 	"erpnext.stock.reorder_item.reorder_item",
 		# ],
         "35 22 * * *": [
-			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_2_q4",
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_2",
 		],
-        "45 22 * * *": [
-			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_cad",
-		],
-        "55 22 * * *": [
-			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
-		]
+        # "45 22 * * *": [
+		# 	"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_cad",
+		# ],
+        # "55 22 * * *": [
+		# 	"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
+		# ]
 	},
 	"hourly": [
 		"erpnext.erpnext_integrations.doctype.plaid_settings.plaid_settings.automatic_synchronization",
