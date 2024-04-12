@@ -669,7 +669,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
                 task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(num_of_row, cell, company))
                 if time_sheet_id == "":
                     new_time_sheet_doc = create_new_timesheet(
-						dates,
+						date,
 						project_code,
 						emp_name,
 						ts_status,
@@ -692,7 +692,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
                         })
 
                     new_time_sheet_doc = create_new_timesheet(
-                        dates,
+                        date,
 						project_code,
 						emp_name,
 						ts_status,
@@ -707,7 +707,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 
                 time_sheet_doc = update_timesheet(
                     time_sheet_id,
-					dates,
+					date,
 					project_code,
 					emp_name,
 					ts_status,
