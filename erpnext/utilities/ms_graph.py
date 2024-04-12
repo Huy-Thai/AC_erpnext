@@ -77,9 +77,9 @@ class TaskModel:
         assert cell["C"] != "", "Value Cell C is required"
         assert cell["O"] != "", "Value Cell O is required"
 
-        expected_time = float(cell["I"]) if cell["I"] != "" else 0.0
-        task_status = EXCEL_TASK_STATUS[cell["P"]]
-        task_priority = EXCEL_TASK_PRIORITY[cell["K"]]
+        expected_time = float(cell["I"]) if "I" in cell and cell["I"] != "" else 0.0
+        task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
+        task_priority = EXCEL_TASK_PRIORITY[cell["K"] if "K" in cell else ""]
 
         self.task_number = num
         self.subject = cell["O"]
