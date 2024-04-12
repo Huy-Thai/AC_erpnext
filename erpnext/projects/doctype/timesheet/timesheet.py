@@ -644,8 +644,6 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
             if parent_task is not None and cell["B"] == "P":
                 A_column_key = process_handle_parent_task_by_excel(
 					parent_task,
-					ms_access_token,
-					body_query,
 					ParentTaskModel(num_of_row, cell),
 				)
                 await ggSheet.update_worksheet(num_of_row, A_column_key)
