@@ -84,7 +84,7 @@ class GGSheet:
             promises.append(promise)
         row_values = await asyncio.gather(*promises)
 
-        return row_values, row_date
+        return row_values, date_values
 
 
 def mapping_cell_with_dates_raw(cell, row_date):
