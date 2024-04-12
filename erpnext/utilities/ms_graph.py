@@ -66,9 +66,9 @@ class ParentTaskModel:
         self.col_number = num
         self.prev_hash_key = cell["A"]
         self.task_name = EXCEL_TYPE_PARENT_TASK[cell["H"]]
-        self.expected_start_date = expected_start_date.date() if expected_start_date is not None else expected_start_date
-        self.expected_end_date = expected_end_date.date() if expected_end_date is not None else expected_end_date
-        self.new_end_date = new_end_date.date() if new_end_date is not None else new_end_date
+        self.expected_start_date = expected_start_date if expected_start_date is not None else expected_start_date
+        self.expected_end_date = expected_end_date if expected_end_date is not None else expected_end_date
+        self.new_end_date = new_end_date if new_end_date is not None else new_end_date
         self.expected_time = expected_time
 
 

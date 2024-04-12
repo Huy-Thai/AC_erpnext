@@ -626,7 +626,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
     row_date = results[1]
     for value in row_values:
         for num_of_row, cell in value.items():
-            if cell is None or cell["B"] == "Pa": continue
+            if cell is None or "B" not in cell or cell["B"] == "Pa": continue
             date, date_string = mapping_cell_with_dates_raw(cell, row_date)
 
             project_code = cell["C"] if "C" in cell else ""
@@ -636,7 +636,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
             parent_task = frappe.db.get_value(
 				"Task",
 	            {
-					"subject": EXCEL_TYPE_PARENT_TASK[cell["H"]],
+					"subject": EXCEL_TYPE_PARENT_TASK[cell["H"] if "H" in cell else ""],
 					"project": project_code,
 					"is_group": 1,
 				}, ["name"])
