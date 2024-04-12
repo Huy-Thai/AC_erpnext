@@ -75,7 +75,8 @@ class GGSheet:
     async def get_row_values_by_range(self, row_of_date, range_start, range_end):
         date_values = await self.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
         ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
-        row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
+        for ignore in ignore_values:
+            date_values.pop(ignore, None)
 
         promises = []
         for num in range(range_start, range_end):
