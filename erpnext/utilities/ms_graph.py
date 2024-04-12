@@ -58,9 +58,9 @@ EXCEL_TIME_SHEET_DOC_STATUS = {
 
 class ParentTaskModel:
     def __init__(self, num, cell):
-        expected_start_date = parser.parse(cell["E"]) if cell["E"] is None and cell["E"] != "" else ""
-        expected_end_date = parser.parse(cell["F"]) if cell["F"] is None and cell["F"] != "" else ""
-        new_end_date = parser.parse(cell["G"]) if cell["G"] is None and cell["G"] != "" else ""
+        expected_start_date = parser.parse(cell["E"]) if cell["E"] is None and cell["E"] != "" else None
+        expected_end_date = parser.parse(cell["F"]) if cell["F"] is None and cell["F"] != "" else None
+        new_end_date = parser.parse(cell["G"]) if cell["G"] is None and cell["G"] != "" else None
         expected_time = float(cell["I"]) if cell["I"] != "" else 0.0
 
         self.col_number = num
