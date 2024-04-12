@@ -725,7 +725,7 @@ def process_handle_timesheet_from_sheet_team_2():
     worksheet_name="Q1"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=600
     company="ACONS"
     asyncio.run(handle_timesheet(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
