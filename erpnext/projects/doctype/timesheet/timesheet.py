@@ -629,7 +629,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
             if cell is None or cell["B"] == "Pa": continue
             date, date_string = mapping_cell_with_dates_raw(cell, row_date)
 
-            project_code = cell["C"]
+            project_code = cell["C"] if "C" in cell else ""
             is_project_exist = frappe.db.exists("Project", project_code)
             if not is_project_exist: continue
 
@@ -649,11 +649,11 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
                 await ggSheet.update_worksheet(num_of_row, A_column_key)
                 continue
 
-            task = cell["O"]
-            activity_code = cell["N"]
-            employee_name = cell["M"]
-            progress = cell["L"].replace("%", "")
-            excel_task_status = EXCEL_TASK_STATUS[cell["P"]]
+            task = cell["O"] if "O" in cell else ""
+            activity_code = cell["N"] if "N" in cell else ""
+            employee_name = cell["M"] if "M" in cell else ""
+            progress = cell["L"].replace("%", "") if "L" in cell else ""
+            excel_task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
 
             if employee_name == "" or task == "": continue
             new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{excel_task_status};{date_string}"
