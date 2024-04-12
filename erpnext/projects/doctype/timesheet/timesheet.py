@@ -725,9 +725,9 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 def process_handle_timesheet_from_sheet_team_2():
     url_file="https://docs.google.com/spreadsheets/d/1w-4LDWssQi2YzSzy2Ud85KxCJ1KrzlAGXR3948orsXM/edit#gid=1994946052"
     worksheet_name="Q1"
-    row_of_date="3"
-    range_start="6"
-    range_end="30"
+    row_of_date=3
+    range_start=6
+    range_end=30
     company="ACONS"
     asyncio.run(handle_timesheet(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
