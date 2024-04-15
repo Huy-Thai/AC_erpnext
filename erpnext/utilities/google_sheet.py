@@ -66,7 +66,7 @@ class GGSheet:
         return new_rows
 
 
-    def update_worksheet(self, num_of_cell, payload):
+    async def update_worksheet(self, num_of_cell, payload):
         if self.client_agc is None: await self.__authorization()
         worksheet = await self.__open_spreadsheet()
         worksheet.update_acell(f"A{num_of_cell}", payload)
