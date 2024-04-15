@@ -646,7 +646,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 					parent_task,
 					ParentTaskModel(num_of_row, cell),
 				)
-                await ggSheet.update_worksheet(num_of_row, A_column_key)
+                ggSheet.update_worksheet(num_of_row, A_column_key)
                 continue
 
             task = cell["O"] if "O" in cell else ""
@@ -679,7 +679,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 						company,
 					)
                     A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-                    await ggSheet.update_worksheet(num_of_row, A_column_key)
+                    ggSheet.update_worksheet(num_of_row, A_column_key)
                     continue
                 
                 # Optimize logic handle flow on below
@@ -702,7 +702,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 						company,
                     )
                     A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-                    await ggSheet.update_worksheet(num_of_row, A_column_key)
+                    ggSheet.update_worksheet(num_of_row, A_column_key)
                     continue
 
                 time_sheet_doc = update_timesheet(
@@ -717,7 +717,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 					task_doc,
                 )
                 A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
-                await ggSheet.update_worksheet(num_of_row, A_column_key)
+                ggSheet.update_worksheet(num_of_row, A_column_key)
 
 
 def process_handle_timesheet_from_sheet_team_2():
