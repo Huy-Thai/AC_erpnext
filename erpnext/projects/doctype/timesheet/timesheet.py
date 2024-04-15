@@ -646,7 +646,8 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 					parent_task,
 					ParentTaskModel(num_of_row, cell),
 				)
-                ggSheet.update_worksheet(num_of_row, A_column_key)
+                if A_column_key is not None:
+                	ggSheet.update_worksheet(num_of_row, A_column_key)
                 continue
 
             task = cell["O"] if "O" in cell else ""
