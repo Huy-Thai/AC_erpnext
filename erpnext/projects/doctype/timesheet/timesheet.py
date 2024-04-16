@@ -624,53 +624,55 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
     results = await ggSheet.get_row_values_by_range(row_of_date=row_of_date, range_start=range_start, range_end=range_end)
     row_values = results[0]
     row_date = results[1]
-    for value in row_values:
-        for num_of_row, cell in value.items():
-            if cell is None or "B" not in cell or cell["B"] == "Pa": continue
-            date, date_string = mapping_cell_with_dates_raw(cell, row_date)
+    print(row_values)
+    print(row_date)
 
-            task = cell["O"] if "O" in cell else ""
-            activity_code = cell["N"] if "N" in cell else ""
-            employee_name = cell["M"] if "M" in cell else ""
-            if task == "" or activity_code == "" or employee_name == "": continue
+    # for value in row_values:
+    #     for num_of_row, cell in value.items():
+    #         if cell is None or "B" not in cell or cell["B"] == "Pa": continue
+    #         date, date_string = mapping_cell_with_dates_raw(cell, row_date)
 
-            project_code = cell["C"] if "C" in cell else ""
-            is_project_exist = frappe.db.exists("Project", project_code)
-            if not is_project_exist: continue
+    #         task = cell["O"] if "O" in cell else ""
+    #         activity_code = cell["N"] if "N" in cell else ""
+    #         employee_name = cell["M"] if "M" in cell else ""
+    #         if task == "" or activity_code == "" or employee_name == "": continue
 
-            parent_task = frappe.db.get_value(
-                "Task",
-                {
-                    "subject": EXCEL_TYPE_PARENT_TASK[cell["H"] if "H" in cell else ""],
-                    "project": project_code,
-                    "is_group": 1,
-                }, ["name"])
+    #         project_code = cell["C"] if "C" in cell else ""
+    #         is_project_exist = frappe.db.exists("Project", project_code)
+    #         if not is_project_exist: continue
 
-            if parent_task is not None and cell["B"] == "P":
-                A_column_key = process_handle_parent_task_by_excel(
-                    parent_task,
-                    ParentTaskModel(num_of_row, cell),
-                )
-                if A_column_key is not None:
-                    await ggSheet.update_worksheet(num_of_row, A_column_key)
-                continue
+    #         parent_task = frappe.db.get_value(
+    #             "Task",
+    #             {
+    #                 "subject": EXCEL_TYPE_PARENT_TASK[cell["H"] if "H" in cell else ""],
+    #                 "project": project_code,
+    #                 "is_group": 1,
+    #             }, ["name"])
 
-            progress = cell["L"].replace("%", "") if "L" in cell else ""
-            excel_task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
+    #         if parent_task is not None and cell["B"] == "P":
+    #             A_column_key = process_handle_parent_task_by_excel(
+    #                 parent_task,
+    #                 ParentTaskModel(num_of_row, cell),
+    #             )
+    #             if A_column_key is not None:
+    #                 await ggSheet.update_worksheet(num_of_row, A_column_key)
+    #             continue
 
-            if employee_name == "" or task == "": continue
-            new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{excel_task_status};{date_string}"
-            new_hash_key = hash_str_8_dig(new_key)
-            prev_hash_key, task_id, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
+    #         progress = cell["L"].replace("%", "") if "L" in cell else ""
+    #         excel_task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
+
+    #         if employee_name == "" or task == "": continue
+    #         new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{excel_task_status};{date_string}"
+    #         new_hash_key = hash_str_8_dig(new_key)
+    #         prev_hash_key, task_id, time_sheet_id = split_str_get_key(input_data=cell["A"], char_split="--")
             
-            if prev_hash_key == "" or prev_hash_key != new_hash_key:
-                ts_status = EXCEL_TIME_SHEET_STATUS[excel_task_status]
-                ts_doc_status = EXCEL_TIME_SHEET_DOC_STATUS[ts_status]
-                emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-                if emp_name is None: continue
+    #         if prev_hash_key == "" or prev_hash_key != new_hash_key:
+    #             ts_status = EXCEL_TIME_SHEET_STATUS[excel_task_status]
+    #             ts_doc_status = EXCEL_TIME_SHEET_DOC_STATUS[ts_status]
+    #             emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
+    #             if emp_name is None: continue
 
-                task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(num_of_row, cell, company))
-                print(task_doc)
+    #             task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(num_of_row, cell, company))
                 # if task_doc is None: continue
                 # if time_sheet_id == "":
                 #     new_time_sheet_doc = create_new_timesheet(
