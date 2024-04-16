@@ -74,9 +74,6 @@ class ParentTaskModel:
 
 class TaskModel:
     def __init__(self, num, cell, company):
-        assert cell["C"] != "", "Value Cell C is required"
-        assert cell["O"] != "", "Value Cell O is required"
-
         expected_time = float(cell["I"]) if "I" in cell and cell["I"] != "" else 0.0
         task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
         task_priority = EXCEL_TASK_PRIORITY[cell["K"] if "K" in cell else ""]

@@ -69,7 +69,7 @@ class GGSheet:
     async def update_worksheet(self, num_of_cell, payload):
         if self.client_agc is None: await self.__authorization()
         worksheet = await self.__open_spreadsheet()
-        worksheet.update_acell(f"A{num_of_cell}", payload)
+        await worksheet.update_acell(f"A{num_of_cell}", payload)
 
 
     async def get_row_values_by_range(self, row_of_date, range_start, range_end):

@@ -624,10 +624,17 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
     results = await ggSheet.get_row_values_by_range(row_of_date=row_of_date, range_start=range_start, range_end=range_end)
     row_values = results[0]
     row_date = results[1]
+
+    print(row_values)
     for value in row_values:
         for num_of_row, cell in value.items():
             if cell is None or "B" not in cell or cell["B"] == "Pa": continue
             date, date_string = mapping_cell_with_dates_raw(cell, row_date)
+
+            task = cell["O"] if "O" in cell else ""
+            activity_code = cell["N"] if "N" in cell else ""
+            employee_name = cell["M"] if "M" in cell else ""
+            if task == "" or activity_code == "" or employee_name == "": continue
 
             project_code = cell["C"] if "C" in cell else ""
             is_project_exist = frappe.db.exists("Project", project_code)
@@ -647,12 +654,9 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 					ParentTaskModel(num_of_row, cell),
 				)
                 if A_column_key is not None:
-                	ggSheet.update_worksheet(num_of_row, A_column_key)
+                	await ggSheet.update_worksheet(num_of_row, A_column_key)
                 continue
 
-            task = cell["O"] if "O" in cell else ""
-            activity_code = cell["N"] if "N" in cell else ""
-            employee_name = cell["M"] if "M" in cell else ""
             progress = cell["L"].replace("%", "") if "L" in cell else ""
             excel_task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
 
@@ -680,7 +684,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 						company,
 					)
                     A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-                    ggSheet.update_worksheet(num_of_row, A_column_key)
+                    await ggSheet.update_worksheet(num_of_row, A_column_key)
                     continue
                 
                 # Optimize logic handle flow on below
@@ -703,7 +707,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 						company,
                     )
                     A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-                    ggSheet.update_worksheet(num_of_row, A_column_key)
+                    await ggSheet.update_worksheet(num_of_row, A_column_key)
                     continue
 
                 time_sheet_doc = update_timesheet(
@@ -718,7 +722,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
 					task_doc,
                 )
                 A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
-                ggSheet.update_worksheet(num_of_row, A_column_key)
+                await ggSheet.update_worksheet(num_of_row, A_column_key)
 
 
 def process_handle_timesheet_from_sheet_team_2():

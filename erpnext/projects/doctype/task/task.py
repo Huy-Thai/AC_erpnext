@@ -442,6 +442,8 @@ def process_handle_parent_task_by_excel(parent_task_id, payload: ParentTaskModel
 
     if prev_hash_key == "" or prev_hash_key != new_hash_key:
         parent_task_doc = frappe.get_doc("Task", parent_task_id)
+        print("Parent Task:")
+        print(parent_task_doc)
         parent_task_doc.update(
             dict(
                 exp_start_date=payload.expected_start_date,
