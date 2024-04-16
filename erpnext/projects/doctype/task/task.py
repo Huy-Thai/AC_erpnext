@@ -436,56 +436,62 @@ def on_doctype_update():
 	
 
 def process_handle_parent_task_by_excel(parent_task_id, payload: ParentTaskModel):
-    prev_hash_key, _, __ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
-    new_key = f"{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
-    new_hash_key = hash_str_8_dig(new_key)
+    try:
+        prev_hash_key, _, __ = split_str_get_key(input_data=payload.prev_hash_key, char_split = "--")
+        new_key = f"{payload.expected_start_date};{payload.expected_end_date};{payload.new_end_date}"
+        new_hash_key = hash_str_8_dig(new_key)
 
-    if prev_hash_key == "" or prev_hash_key != new_hash_key:
-        parent_task_doc = frappe.get_doc("Task", parent_task_id)
-        print("Parent Task:")
-        print(parent_task_doc)
-        parent_task_doc.update(
-            dict(
-                exp_start_date=payload.expected_start_date,
-                exp_end_date=payload.expected_end_date,
-                new_end_date=payload.new_end_date,
-				expected_time=payload.expected_time,
+        if prev_hash_key == "" or prev_hash_key != new_hash_key:
+            parent_task_doc = frappe.get_doc("Task", parent_task_id)
+            parent_task_doc.update(
+                dict(
+                    exp_start_date=payload.expected_start_date,
+                    exp_end_date=payload.expected_end_date,
+                    new_end_date=payload.new_end_date,
+                    expected_time=payload.expected_time,
+                )
             )
-        )
-        parent_task_doc.save()
-        A_column_value = f"{new_hash_key}--{parent_task_id}"
-        return A_column_value
-
-    return None
+            parent_task_doc.save()
+            A_column_value = f"{new_hash_key}--{parent_task_id}"
+            return A_column_value
+        return None
+    except Exception as err:
+        print(f"Process parent task failed with: {err}")
+        return None
 
 def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
-	if task_id == "":
-		new_task_doc = frappe.new_doc("Task")
-		new_task_doc.task_number = payload.task_number
-		new_task_doc.subject = payload.subject
-		new_task_doc.project = payload.project
-		new_task_doc.status = payload.status
-		new_task_doc.priority = payload.priority
-		new_task_doc.progress = payload.progress
-		new_task_doc.expected_time = payload.expected_time
-		new_task_doc.parent_task = parent_task
-		new_task_doc.assigned_to = payload.employee_name
-		new_task_doc.company = payload.company
-		new_task_doc.insert()
-		return new_task_doc.name
+    try:
+        if task_id == "":
+            new_task_doc = frappe.new_doc("Task")
+            new_task_doc.task_number = payload.task_number
+            new_task_doc.subject = payload.subject
+            new_task_doc.project = payload.project
+            new_task_doc.status = payload.status
+            new_task_doc.priority = payload.priority
+            new_task_doc.progress = payload.progress
+            new_task_doc.expected_time = payload.expected_time
+            new_task_doc.parent_task = parent_task
+            new_task_doc.assigned_to = payload.employee_name
+            new_task_doc.company = payload.company
+            new_task_doc.insert()
+            return new_task_doc.name
 
-	task_doc = frappe.get_doc("Task", task_id)
-	task_doc.update(
-		dict(
-			task_number=payload.task_number,
-			subject=payload.subject,
-			project=payload.project,
-			status=payload.status,
-			priority=payload.priority,
-			progress=payload.progress,
-			expected_time=payload.expected_time,
-			parent_task=parent_task,
-		)
-	)
-	task_doc.save()
-	return task_id
+        task_doc = frappe.get_doc("Task", task_id)
+        task_doc.update(
+            dict(
+                task_number=payload.task_number,
+                subject=payload.subject,
+                project=payload.project,
+                status=payload.status,
+                priority=payload.priority,
+                progress=payload.progress,
+                expected_time=payload.expected_time,
+                parent_task=parent_task,
+            )
+        )
+
+        task_doc.save()
+        return task_id
+    except Exception as err:
+        print(f"Process task failed with: {err}")
+        return None
