@@ -456,7 +456,7 @@ def process_handle_parent_task_by_excel(parent_task_id, payload: ParentTaskModel
             return A_column_value
         return None
     except Exception as err:
-        print(f"Process parent task failed with: {err}")
+        frappe.throw(_(f"Process parent task failed with: {err}"))
         return None
 
 def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
@@ -493,5 +493,5 @@ def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
         task_doc.save()
         return task_id
     except Exception as err:
-        print(f"Process task failed with: {err}")
+        frappe.throw(_(f"Process task failed with: {err}"))
         return None

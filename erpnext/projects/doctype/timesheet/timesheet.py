@@ -726,7 +726,7 @@ async def handle_timesheet(worksheet_name, url_file, range_start, range_end, row
                     A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
                     await ggSheet.update_worksheet(num_of_row, A_column_key)
     except Exception as err:
-        print(f"Process timesheet failed with: {err}")
+        frappe.throw(_(f"Process timesheet failed with: {err}"))
 
 
 def process_handle_timesheet_from_sheet_team_2():
