@@ -621,22 +621,19 @@ def update_timesheet(
 
 async def handle_single_row(ggSheet, num_of_row, row_date):
     cell = await ggSheet.get_values_with_excel_style(num_of_row=num_of_row, seed=1)
-    if cell is None or "B" not in cell or cell["B"] == "Pa":
-        continue
+    if cell is None or "B" not in cell or cell["B"] == "Pa": return
 
     date, date_string = mapping_cell_with_dates_raw(cell, row_date)
     task = cell["O"] if "O" in cell else ""
     activity_code = cell["N"] if "N" in cell else ""
     employee_name = cell["M"] if "M" in cell else ""
 
-    if task == "" or activity_code == "" or employee_name == "":
-        continue
+    if task == "" or activity_code == "" or employee_name == "": return
 
     project_code = cell["C"] if "C" in cell else ""
     is_project_exist = frappe.db.exists("Project", project_code)
 
-    if not is_project_exist:
-        continue
+    if not is_project_exist: return
 
     parent_task = frappe.db.get_value(
         "Task",
@@ -653,13 +650,12 @@ async def handle_single_row(ggSheet, num_of_row, row_date):
         )
         if A_column_key is not None:
             await ggSheet.update_worksheet(num_of_row, A_column_key)
-        continue
+        return
 
     progress = cell["L"].replace("%", "") if "L" in cell else ""
     excel_task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
 
-    if employee_name == "" or task == "":
-        continue
+    if employee_name == "" or task == "": return
 
     new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{excel_task_status};{date_string}"
     new_hash_key = hash_str_8_dig(new_key)
@@ -669,13 +665,10 @@ async def handle_single_row(ggSheet, num_of_row, row_date):
         ts_status = EXCEL_TIME_SHEET_STATUS[excel_task_status]
         ts_doc_status = EXCEL_TIME_SHEET_DOC_STATUS[ts_status]
         emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-
-        if emp_name is None:
-            continue
+        if emp_name is None: return
 
         task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(num_of_row, cell, company))
-        if task_doc is None:
-            continue
+        if task_doc is None: return
 
         if time_sheet_id == "":
             new_time_sheet_doc = create_new_timesheet(
@@ -690,7 +683,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date):
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
             await ggSheet.update_worksheet(num_of_row, A_column_key)
-            continue
+            return
         
         # Optimize logic handle flow on below
         pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
@@ -713,7 +706,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date):
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
             await ggSheet.update_worksheet(num_of_row, A_column_key)
-            continue
+            return
 
         time_sheet_doc = update_timesheet(
             time_sheet_id,
