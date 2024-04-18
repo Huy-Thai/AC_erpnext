@@ -47,7 +47,7 @@ class GGSheet(metaclass=SingletonMeta):
         ])
         return scoped
 
-    async def __open_worksheet(self):
+    async def open_worksheet(self):
         agcm = gspread_asyncio.AsyncioGspreadClientManager(self.__credentials)
         agc = await agcm.authorize()
         self.client_agc = agc
@@ -56,8 +56,8 @@ class GGSheet(metaclass=SingletonMeta):
 
     async def get_values_with_excel_style(self, num_of_row, seed):
         new_rows = {}
-        if self.client_agc is None:
-            await self.__open_worksheet()
+        if self.client_agc is None or self.worksheet is None:
+            await self.open_worksheet()
 
         values = await self.worksheet.row_values(num_of_row)
         for idx, value in enumerate(values):
@@ -67,9 +67,9 @@ class GGSheet(metaclass=SingletonMeta):
         return new_rows
 
     async def update_worksheet(self, num_of_cell, payload):
-        if self.client_agc is None: await self.__authorization()
-        worksheet = await self.__open_spreadsheet()
-        await worksheet.update_acell(f"A{num_of_cell}", payload)
+        if self.client_agc is None or self.worksheet is None:
+            await self.open_worksheet()
+        await self.worksheet.update_acell(f"A{num_of_cell}", payload)
 
 
 def mapping_cell_with_dates_raw(cell, row_date):

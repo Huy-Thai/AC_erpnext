@@ -619,8 +619,7 @@ def update_timesheet(
     return time_sheet_doc
 
 
-async def handle_single_row(url_file, worksheet_name, num_of_row, row_date, company):
-    ggSheet = GGSheet(url_file, worksheet_name)
+async def handle_single_row(ggSheet, num_of_row, row_date, company):
     cell = await ggSheet.get_values_with_excel_style(num_of_row=num_of_row, seed=1)
     if cell is None or "B" not in cell or cell["B"] == "Pa": return
 
@@ -733,9 +732,9 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
     tasks = []
     async with asyncio.TaskGroup() as tg:
         for num in range(range_start, range_end):
-            task = tg.create_task(handle_single_row(url_file, worksheet_name, num, row_date, company))
+            task = tg.create_task(handle_single_row(ggSheet, num, row_date, company))
             tasks.append(task)
-
+    
     # promises = []
     # for num in range(range_start, range_end):
     #     promise = asyncio.ensure_future(self.get_values_with_excel_style(num_of_row=num, seed=1, is_return_num=True))
