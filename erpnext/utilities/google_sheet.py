@@ -6,15 +6,26 @@ from functools import cache
 from dateutil import parser
 from google.oauth2 import service_account
 
+
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
 @cache
-class GGSheet:
+class GGSheet(metaclass=SingletonMeta):
     client_agc = None
+    worksheet = None
 
     def __init__(self, url_file, worksheet_name):
         self.url_file = url_file
         self.worksheet_name = worksheet_name
         
-
     def __credentials(self):
         creds = service_account.Credentials.from_service_account_info({
             "type": "service_account",
@@ -36,55 +47,29 @@ class GGSheet:
         ])
         return scoped
 
-
-    async def __authorization(self):
+    async def __open_worksheet(self):
         agcm = gspread_asyncio.AsyncioGspreadClientManager(self.__credentials)
         agc = await agcm.authorize()
         self.client_agc = agc
+        sheet = await agc.open_by_url(self.url_file)
+        self.worksheet = await sheet.worksheet(self.worksheet_name)
 
-
-    async def __open_spreadsheet(self):
-        if self.client_agc is None: await self.__authorization()
-        sheet = await self.client_agc.open_by_url(self.url_file)
-        worksheet = await sheet.worksheet(self.worksheet_name)
-        return worksheet
-
-
-    async def get_values_with_excel_style(self, num_of_row, seed, is_return_num=False):
+    async def get_values_with_excel_style(self, num_of_row, seed):
         new_rows = {}
-        worksheet = await self.__open_spreadsheet()
-        values = await worksheet.row_values(num_of_row)
+        if self.client_agc is None:
+            await self.__open_worksheet()
+
+        values = await self.worksheet.row_values(num_of_row)
         for idx, value in enumerate(values):
             column = excel_style(None, idx + seed)
             new_rows[column] = value
 
-        if is_return_num:
-            result = {}
-            result[num_of_row] = new_rows
-            return result
-
         return new_rows
-
 
     async def update_worksheet(self, num_of_cell, payload):
         if self.client_agc is None: await self.__authorization()
         worksheet = await self.__open_spreadsheet()
         await worksheet.update_acell(f"A{num_of_cell}", payload)
-
-
-    async def get_row_values_by_range(self, row_of_date, range_start, range_end):
-        date_values = await self.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
-        ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
-        for ignore in ignore_values:
-            date_values.pop(ignore, None)
-
-        promises = []
-        for num in range(range_start, range_end):
-            promise = asyncio.ensure_future(self.get_values_with_excel_style(num_of_row=num, seed=1, is_return_num=True))
-            promises.append(promise)
-        row_values = await asyncio.gather(*promises)
-
-        return row_values, date_values
 
 
 def mapping_cell_with_dates_raw(cell, row_date):
