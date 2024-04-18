@@ -66,10 +66,13 @@ class GGSheet(metaclass=SingletonMeta):
 
         return new_rows
 
-    async def update_worksheet(self, num_of_cell, payload):
-        if self.client_agc is None or self.worksheet is None:
-            await self.open_worksheet()
-        await self.worksheet.update_acell(f"A{num_of_cell}", payload)
+    def update_worksheet(self, num_of_cell, payload):
+        import gspread
+        creds_with_scope = self.__credentials()
+        client = gspread.authorize(creds_with_scope)
+        sheet = client.open_by_url(self.url_file)
+        worksheet = sheet.worksheet(self.worksheet_name)
+        worksheet.update_acell(f"A{num_of_cell}", payload)
 
 
 def mapping_cell_with_dates_raw(cell, row_date):
