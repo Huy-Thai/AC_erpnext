@@ -642,7 +642,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
             ParentTaskModel(num_of_row, cell),
         )
         if A_column_key is not None:
-            await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
+            await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
 
         return
 
@@ -680,7 +680,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 company,
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-            await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
+            await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
 
             return
         
@@ -704,7 +704,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 company,
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-            await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
+            await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
 
             return
 
@@ -720,7 +720,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
             task_doc,
         )
         A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
-        await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
+        await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
 
 
 async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
