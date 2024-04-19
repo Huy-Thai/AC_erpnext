@@ -649,7 +649,6 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
         await asyncio.sleep(2)
         if A_column_key is not None:
             await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
-            print(num_of_row)
             return
         return
 
@@ -695,7 +694,6 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
 
             await asyncio.sleep(2)
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-            print(num_of_row)
             await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
             return
         
@@ -747,13 +745,16 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
 
 
 async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
-    ggSheet = GGSheet(url_file, worksheet_name)
-    date_values = await ggSheet.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
-    ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
-    row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
+    try:
+        ggSheet = GGSheet(url_file, worksheet_name)
+        date_values = await ggSheet.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
+        ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
+        row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
-    promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
-    await asyncio.gather(*promises)
+        promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
+        await asyncio.gather(*promises)
+    except Exception as err:
+        print(f"Failed with: {err}")
 
 
 def process_handle_timesheet_from_sheet_team_2():
