@@ -619,12 +619,12 @@ def update_timesheet(
 
 async def handle_single_row(ggSheet, num_of_row, row_date, company):
     cell = await ggSheet.get_values_with_excel_style(num_of_row=num_of_row, seed=1)
-    if cell is None or "B" not in cell or cell["B"] == "Pa": return
+    if cell is None or "B" not in cell or cell["B"] == "Pa": return None
 
     date, date_string = mapping_cell_with_dates_raw(cell, row_date)
     project_code = cell["C"] if "C" in cell else ""
     is_project_exist = frappe.db.exists("Project", project_code)
-    if not is_project_exist: return
+    if not is_project_exist: return None
 
     parent_task = frappe.db.get_value(
         "Task",
@@ -639,16 +639,15 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
             parent_task,
             ParentTaskModel(num_of_row, cell),
         )
-        if A_column_key is not None:
-            await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
+        if A_column_key is not None: return A_column_key
 
-        return
+        return None
 
     task = cell["O"] if "O" in cell else ""
     activity_code = cell["N"] if "N" in cell else ""
     employee_name = cell["M"] if "M" in cell else ""
 
-    if employee_name == "" or activity_code == "" or task == "": return
+    if employee_name == "" or activity_code == "" or task == "": return None
 
     progress = cell["L"].replace("%", "") if "L" in cell else ""
     excel_task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
@@ -661,10 +660,10 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
         ts_status = EXCEL_TIME_SHEET_STATUS[excel_task_status]
         ts_doc_status = EXCEL_TIME_SHEET_DOC_STATUS[ts_status]
         emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-        if emp_name is None: return
+        if emp_name is None: return None
 
         task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(num_of_row, cell, company))
-        if task_doc is None: return
+        if task_doc is None: return None
 
         if time_sheet_id == "":
             new_time_sheet_doc = create_new_timesheet(
@@ -678,9 +677,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 company,
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-            await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
-
-            return
+            return A_column_key
         
         # Optimize logic handle flow on below
         pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
@@ -702,9 +699,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 company,
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-            await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
-
-            return
+            return A_column_key
 
         time_sheet_doc = update_timesheet(
             time_sheet_id,
@@ -718,8 +713,9 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
             task_doc,
         )
         A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
-        await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
+        return A_column_key
 
+    return None
 
 async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
     ggSheet = GGSheet(url_file, worksheet_name)
@@ -731,7 +727,14 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
     for num in range(range_start, range_end):
         promise = asyncio.ensure_future(handle_single_row(ggSheet, num, row_date, company))
         promises.append(promise)
-    await asyncio.gather(*promises)
+
+    cell_values = await asyncio.gather(*promises)
+    cell_list = await worksheet.range(f'A{range_start}:A{range_end}')
+    for i, val in enumerate(cell_values):
+        if  val is None: continue
+        cell_list[i].value = val
+
+    await worksheet.update_cells(cell_list)
 
 
 def process_handle_timesheet_from_sheet_team_2():
