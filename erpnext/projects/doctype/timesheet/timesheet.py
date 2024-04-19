@@ -729,13 +729,11 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
     ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
     row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
-    tasks = []
-    async with asyncio.TaskGroup() as tg:
-        for num in range(range_start, range_end):
-            task = tg.create_task(handle_single_row(ggSheet, num, row_date, company))
-            tasks.append(task)
-
-    await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
+    promises = []
+    for row_num in range(num_start, num_end):
+        promise = asyncio.ensure_future(handle_single_row(ggSheet, num, row_date, company))
+        promises.append(promise)
+    await asyncio.gather(*promises)
 
 
 def process_handle_timesheet_from_sheet_team_2():
