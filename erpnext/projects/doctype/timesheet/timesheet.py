@@ -642,7 +642,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
             ParentTaskModel(num_of_row, cell),
         )
         if A_column_key is not None:
-            ggSheet.update_worksheet(num_of_row, A_column_key)
+            await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
 
         return
 
@@ -680,7 +680,8 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 company,
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-            ggSheet.update_worksheet(num_of_row, A_column_key)
+            await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
+
             return
         
         # Optimize logic handle flow on below
@@ -703,7 +704,8 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 company,
             )
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
-            ggSheet.update_worksheet(num_of_row, A_column_key)
+            await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
+
             return
 
         time_sheet_doc = update_timesheet(
@@ -718,7 +720,7 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
             task_doc,
         )
         A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
-        ggSheet.update_worksheet(num_of_row, A_column_key)
+        await ggSheet.worksheet.update_acell(num_of_row, A_column_key)
 
 
 async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
@@ -732,12 +734,8 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
         for num in range(range_start, range_end):
             task = tg.create_task(handle_single_row(ggSheet, num, row_date, company))
             tasks.append(task)
-    
-    # promises = []
-    # for num in range(range_start, range_end):
-    #     promise = asyncio.ensure_future(self.get_values_with_excel_style(num_of_row=num, seed=1, is_return_num=True))
-    #     promises.append(promise)
-    # await asyncio.gather(*promises)
+
+    await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
 
 
 def process_handle_timesheet_from_sheet_team_2():

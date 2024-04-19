@@ -52,7 +52,8 @@ class GGSheet(metaclass=SingletonMeta):
         agc = await agcm.authorize()
         self.client_agc = agc
         sheet = await agc.open_by_url(self.url_file)
-        self.worksheet = await sheet.worksheet(self.worksheet_name)
+        worksheet_res = await sheet.worksheet(self.worksheet_name)
+        self.worksheet = worksheet_res
 
     async def get_values_with_excel_style(self, num_of_row, seed):
         new_rows = {}
@@ -65,14 +66,6 @@ class GGSheet(metaclass=SingletonMeta):
             new_rows[column] = value
 
         return new_rows
-
-    def update_worksheet(self, num_of_cell, payload):
-        import gspread
-        creds_with_scope = self.__credentials()
-        client = gspread.authorize(creds_with_scope)
-        sheet = client.open_by_url(self.url_file)
-        worksheet = sheet.worksheet(self.worksheet_name)
-        worksheet.update_acell(f"A{num_of_cell}", payload)
 
 
 def mapping_cell_with_dates_raw(cell, row_date):
