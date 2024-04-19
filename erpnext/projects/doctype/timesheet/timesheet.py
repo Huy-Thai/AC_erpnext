@@ -732,7 +732,7 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
     tasks = []
     async with asyncio.TaskGroup() as tg:
         for num in range(range_start, range_end):
-            task = tg.create_task(self.get_values_with_excel_style(num_of_row=num, seed=1, is_return_num=True))
+            task = tg.create_task(handle_single_row(ggSheet, num, row_date, company))
             tasks.append(task)
 
     results = await asyncio.wait_for(tasks, timeout=1000)
