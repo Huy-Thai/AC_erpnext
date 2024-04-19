@@ -723,20 +723,13 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
     ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
     row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
-    # promises = []
-    # for num in range(range_start, range_end):
-    #     promise = asyncio.ensure_future(handle_single_row(ggSheet, num, row_date, company))
-    #     promises.append(promise)
-    # cell_values = await asyncio.gather(*promises)
-
     tasks = []
     async with asyncio.TaskGroup() as tg:
         for num in range(range_start, range_end):
             task = tg.create_task(handle_single_row(ggSheet, num, row_date, company))
             tasks.append(task)
 
-    results = await asyncio.wait_for(tasks, timeout=1000)
-    cell_values = [task.result() for task in results]
+    cell_values = [task.result() for task in tasks]
     cell_list = await worksheet.range(f'A{range_start}:A{range_end}')
     for i, val in enumerate(cell_values):
         if  val is None: continue
