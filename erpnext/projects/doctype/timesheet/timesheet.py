@@ -574,7 +574,6 @@ def create_new_timesheet(
         })
     else:
         time_sheet_doc.insert()
-    frappe.db.commit()
     return time_sheet_doc
 
 
