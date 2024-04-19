@@ -730,7 +730,7 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
     row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
     promises = []
-    for row_num in range(num_start, num_end):
+    for num in range(range_start, range_end):
         promise = asyncio.ensure_future(handle_single_row(ggSheet, num, row_date, company))
         promises.append(promise)
     await asyncio.gather(*promises)
