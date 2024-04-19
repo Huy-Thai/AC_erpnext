@@ -730,12 +730,12 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
             tasks.append(task)
 
     cell_values = [task.result() for task in tasks]
-    cell_list = await worksheet.range(f'A{range_start}:A{range_end}')
+    cell_list = await ggSheet.worksheet.range(f'A{range_start}:A{range_end}')
     for i, val in enumerate(cell_values):
         if  val is None: continue
         cell_list[i].value = val
 
-    await worksheet.update_cells(cell_list)
+    await ggSheet.worksheet.update_cells(cell_list)
 
 
 def process_handle_timesheet_from_sheet_team_2():
