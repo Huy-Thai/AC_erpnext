@@ -614,7 +614,6 @@ def update_timesheet(
             )
 
     time_sheet_doc.save()
-    frappe.db.commit()
     return time_sheet_doc
 
 
