@@ -619,40 +619,48 @@ def update_timesheet(
 
 async def handle_single_row(ggSheet, num_of_row, row_date, company):
     cell = await ggSheet.get_values_with_excel_style(num_of_row=num_of_row, seed=1)
-    if cell is None or "B" not in cell or cell["B"] == "Pa": return
+    print(cell)
+    if cell is None or "B" not in cell or cell["B"] == "Pa":
+        return
 
     date, date_string = mapping_cell_with_dates_raw(cell, row_date)
     project_code = cell["C"] if "C" in cell else ""
     is_project_exist = frappe.db.exists("Project", project_code)
-    if not is_project_exist: return
+    await asyncio.sleep(1)
 
+    if not is_project_exist:
+        return
+
+    phase_name = EXCEL_TYPE_PARENT_TASK[cell["H"] if "H" in cell else ""]
     parent_task = frappe.db.get_value(
         "Task",
         {
-            "subject": EXCEL_TYPE_PARENT_TASK[cell["H"] if "H" in cell else ""],
+            "subject": phase_name,
             "project": project_code,
             "is_group": 1,
         }, ["name"])
 
+    await asyncio.sleep(2)
     if parent_task is not None and cell["B"] == "P":
         A_column_key = process_handle_parent_task_by_excel(
             parent_task,
             ParentTaskModel(num_of_row, cell),
         )
+        await asyncio.sleep(2)
         if A_column_key is not None:
             await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
+            print(num_of_row)
             return
-
         return
 
     task = cell["O"] if "O" in cell else ""
     activity_code = cell["N"] if "N" in cell else ""
     employee_name = cell["M"] if "M" in cell else ""
-
-    if employee_name == "" or activity_code == "" or task == "": return
-
     progress = cell["L"].replace("%", "") if "L" in cell else ""
     excel_task_status = EXCEL_TASK_STATUS[cell["P"] if "P" in cell else ""]
+
+    if employee_name == "" or activity_code == "" or task == "":
+        return
 
     new_key = f"{project_code};{parent_task};{employee_name};{progress};{activity_code};{task};{excel_task_status};{date_string}"
     new_hash_key = hash_str_8_dig(new_key)
@@ -662,10 +670,16 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
         ts_status = EXCEL_TIME_SHEET_STATUS[excel_task_status]
         ts_doc_status = EXCEL_TIME_SHEET_DOC_STATUS[ts_status]
         emp_name = frappe.db.get_value("Employee", {"employee_name": employee_name}, ["name"])
-        if emp_name is None: return
+        await asyncio.sleep(2)
+
+        if emp_name is None:
+            return
 
         task_doc = process_handle_task_by_excel(task_id, parent_task, TaskModel(num_of_row, cell, company))
-        if task_doc is None: return
+        await asyncio.sleep(2)
+
+        if task_doc is None:
+            return
 
         if time_sheet_id == "":
             new_time_sheet_doc = create_new_timesheet(
@@ -678,18 +692,24 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 task_doc,
                 company,
             )
+
+            await asyncio.sleep(2)
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
+            print(num_of_row)
             await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
             return
         
         # Optimize logic handle flow on below
         pre_time_sheet = frappe.db.get_value("Timesheet", time_sheet_id, ["status"], as_dict=1)
+        await asyncio.sleep(2)
+
         if pre_time_sheet is not None and (pre_time_sheet.status == "Submitted" or pre_time_sheet.status == "Cancelled"):
             if pre_time_sheet.status == "Submitted":
                 frappe.db.set_value("Timesheet", time_sheet_id, {
                     "status": "Cancelled",
                     "docstatus": 2,
                 })
+                await asyncio.sleep(2)
 
             new_time_sheet_doc = create_new_timesheet(
                 date,
@@ -701,6 +721,8 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
                 task_doc,
                 company,
             )
+
+            await asyncio.sleep(2)
             A_column_key = f"{new_hash_key}--{task_doc}--{new_time_sheet_doc.name}"
             await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
             return
@@ -716,11 +738,13 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
             activity_code,
             task_doc,
         )
+    
+        await asyncio.sleep(2)
         A_column_key = f"{new_hash_key}--{task_doc}--{time_sheet_doc.name}"
         await ggSheet.worksheet.update_acell(f"A{num_of_row}", A_column_key)
         return
-
     return
+
 
 async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
     ggSheet = GGSheet(url_file, worksheet_name)
@@ -728,11 +752,8 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
     ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
     row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
-    promises = []
-    for num in range(range_start, range_end):
-        promise = asyncio.ensure_future(handle_single_row(ggSheet, num, row_date, company))
-        promises.append(promise)
-    cell_values = await asyncio.gather(*promises)
+    promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
+    await asyncio.gather(*promises)
 
 
 def process_handle_timesheet_from_sheet_team_2():
