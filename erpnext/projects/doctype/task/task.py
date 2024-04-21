@@ -451,6 +451,7 @@ def process_handle_parent_task_by_excel(parent_task_id, payload: ParentTaskModel
             )
         )
         parent_task_doc.save()
+        frappe.db.commit()
         A_column_value = f"{new_hash_key}--{parent_task_id}"
         return A_column_value
     return None
@@ -470,6 +471,7 @@ def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
         new_task_doc.assigned_to = payload.employee_name
         new_task_doc.company = payload.company
         new_task_doc.insert()
+        frappe.db.commit()
         return new_task_doc.name
 
     task_doc = frappe.get_doc("Task", task_id)
@@ -487,4 +489,5 @@ def process_handle_task_by_excel(task_id, parent_task, payload: TaskModel):
     )
 
     task_doc.save()
+    frappe.db.commit()
     return task_id
