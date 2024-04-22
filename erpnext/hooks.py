@@ -402,15 +402,33 @@ scheduler_events = {
 		# "45 0 * * *": [
 		# 	"erpnext.stock.reorder_item.reorder_item",
 		# ],
-        "35 22 * * *": [
+		"0 22 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_1",
+		],
+        "15 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_2",
 		],
-        # "45 22 * * *": [
-		# 	"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_cad",
+        # "30 22 * * *": [
+		# 	"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_3",
 		# ],
-        # "55 22 * * *": [
-		# 	"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_excel_team_civil_q4",
-		# ]
+        "45 22 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_4",
+		],
+        "0 23 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_5",
+		],
+        "15 23 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_6",
+		],
+        "30 23 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_civil",
+		],
+        "45 23 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_bap",
+		],
+        "0 0 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_rnd",
+		]
 	},
 	"hourly": [
 		"erpnext.erpnext_integrations.doctype.plaid_settings.plaid_settings.automatic_synchronization",

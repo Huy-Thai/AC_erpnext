@@ -755,14 +755,94 @@ async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end
         promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
         await asyncio.gather(*promises)
     except Exception as err:
-        print(f"Failed with: {err}")
+        frappe.throw(_(f"Handle timesheet failed with error: {err}"))
+
+
+def process_handle_timesheet_from_sheet_team_1():
+    url_file="https://docs.google.com/spreadsheets/d/1PRJxtCKa-IbfQq9lFOCbAhbjl4QyVjmH/edit#gid=1885142845"
+    worksheet_name="T1"
+    row_of_date=3
+    range_start=6
+    range_end=1000
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
 
 def process_handle_timesheet_from_sheet_team_2():
     url_file="https://docs.google.com/spreadsheets/d/1FFkyht1r6aWqgh4i7EX6AkZRxCuSWen8qs75DaTCH_4/edit#gid=996503932"
-    worksheet_name="Q1"
+    worksheet_name="T2"
     row_of_date=3
     range_start=6
-    range_end=650
+    range_end=1000
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+
+
+# def process_handle_timesheet_from_sheet_team_3():
+#     url_file=""
+#     worksheet_name="T3"
+#     row_of_date=3
+#     range_start=6
+#     range_end=1000
+#     company="ACONS"
+#     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+
+
+def process_handle_timesheet_from_sheet_team_4():
+    url_file="https://docs.google.com/spreadsheets/d/1lHuydi3vExfbJZiUZazpLKB3A9hl4UZl/edit#gid=1885142845"
+    worksheet_name="T4"
+    row_of_date=3
+    range_start=6
+    range_end=1000
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+
+
+def process_handle_timesheet_from_sheet_team_5():
+    url_file="https://docs.google.com/spreadsheets/d/15--neaAuT2q8vGAzo9m_X6NiqRkWMjXH/edit#gid=1742134070"
+    worksheet_name="T5"
+    row_of_date=3
+    range_start=6
+    range_end=1000
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+
+
+def process_handle_timesheet_from_sheet_team_6():
+    url_file="https://docs.google.com/spreadsheets/d/14m-Sk89NxBeh9pnqrtYr-Vdi92INzIFF1uxO7lpTDuk/edit#gid=1175515436"
+    worksheet_name="T6"
+    row_of_date=3
+    range_start=6
+    range_end=1000
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+
+
+def process_handle_timesheet_from_sheet_team_civil():
+    url_file="https://docs.google.com/spreadsheets/d/1cwPx4WsSUl9ve24JgkWeP6G60DyJJbj21ftN-Hqy24M/edit#gid=562153521"
+    worksheet_name="CIVIL"
+    row_of_date=3
+    range_start=6
+    range_end=1000
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+
+
+def process_handle_timesheet_from_sheet_team_bap():
+    url_file="https://docs.google.com/spreadsheets/d/11y58PE9RM16JozFR8yT-oV3K4etIsp2oFmiCsYVaydk/edit#gid=1885142845"
+    worksheet_name="BAP"
+    row_of_date=3
+    range_start=6
+    range_end=1000
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+
+
+def process_handle_timesheet_from_sheet_team_rnd():
+    url_file="https://docs.google.com/spreadsheets/d/15JPQLVqA_WDLmK00AsCnYrv1xqGzWwV9xbung_JDBmU/edit#gid=1885142845"
+    worksheet_name="RnD"
+    row_of_date=3
+    range_start=6
+    range_end=1000
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
