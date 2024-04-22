@@ -746,16 +746,13 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
 
 
 async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
-    try:
-        ggSheet = GGSheet(url_file, worksheet_name)
-        date_values = await ggSheet.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
-        ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
-        row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
+	ggSheet = GGSheet(url_file, worksheet_name)
+	date_values = await ggSheet.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
+	ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
+	row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
-        promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
-        await asyncio.gather(*promises)
-    except Exception as err:
-        frappe.throw(_(f"Handle timesheet failed with error: {err}"))
+	promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
+	await asyncio.gather(*promises)
 
 
 def process_handle_timesheet_from_sheet_team_1():
