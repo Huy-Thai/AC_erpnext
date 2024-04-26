@@ -746,13 +746,16 @@ async def handle_single_row(ggSheet, num_of_row, row_date, company):
 
 
 async def handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company="ACONS"):
-	ggSheet = GGSheet(url_file, worksheet_name)
-	date_values = await ggSheet.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
-	ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
-	row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
+    try:
+        ggSheet = GGSheet(url_file, worksheet_name)
+        date_values = await ggSheet.get_values_with_excel_style(num_of_row=row_of_date, seed=1)
+        ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
+        row_date = {k: v for k, v in date_values.items() if k not in ignore_values}
 
-	promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
-	await asyncio.gather(*promises)
+        promises = [handle_single_row(ggSheet, num, row_date, company) for num in range(range_start, range_end)]
+        await asyncio.gather(*promises)
+    except Exception as err:
+        print(f"Handle timesheet {worksheet_name} failed with: {err}")
 
 
 def process_handle_timesheet_from_sheet_team_1():
@@ -760,7 +763,7 @@ def process_handle_timesheet_from_sheet_team_1():
     worksheet_name="T1"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=1200
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
@@ -770,19 +773,19 @@ def process_handle_timesheet_from_sheet_team_2():
     worksheet_name="T2"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=1200
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
 
-# def process_handle_timesheet_from_sheet_team_3():
-#     url_file=""
-#     worksheet_name="T3"
-#     row_of_date=3
-#     range_start=6
-#     range_end=1000
-#     company="ACONS"
-#     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
+def process_handle_timesheet_from_sheet_team_3():
+    url_file="https://docs.google.com/spreadsheets/d/1hO5er83L8qU6UITbsjacZg_A6SPW8MuFRBEfwQd1dys/edit#gid=370020233"
+    worksheet_name="T3"
+    row_of_date=3
+    range_start=6
+    range_end=1200
+    company="ACONS"
+    asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
 
 def process_handle_timesheet_from_sheet_team_4():
@@ -790,7 +793,7 @@ def process_handle_timesheet_from_sheet_team_4():
     worksheet_name="T4"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=1200
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
@@ -800,7 +803,7 @@ def process_handle_timesheet_from_sheet_team_5():
     worksheet_name="T5"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=1200
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
@@ -810,17 +813,17 @@ def process_handle_timesheet_from_sheet_team_6():
     worksheet_name="T6"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=1200
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
 
 def process_handle_timesheet_from_sheet_team_civil():
-    url_file="https://docs.google.com/spreadsheets/d/1cwPx4WsSUl9ve24JgkWeP6G60DyJJbj21ftN-Hqy24M/edit#gid=562153521"
+    url_file="https://docs.google.com/spreadsheets/d/1qiVQptv2NK08Nr44ZapI8QTEHoDf1DhSpN0jkEe9_Ks/edit#gid=903792263"
     worksheet_name="CIVIL"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=1200
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
@@ -830,8 +833,8 @@ def process_handle_timesheet_from_sheet_team_bap():
     worksheet_name="BAP"
     row_of_date=3
     range_start=6
-    range_end=1000
-    company="ACONS"
+    range_end=1200
+    company="BAP"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))
 
 
@@ -840,6 +843,6 @@ def process_handle_timesheet_from_sheet_team_rnd():
     worksheet_name="RnD"
     row_of_date=3
     range_start=6
-    range_end=1000
+    range_end=1200
     company="ACONS"
     asyncio.run(handle_timesheet_file(worksheet_name, url_file, range_start, range_end, row_of_date, company))

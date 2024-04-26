@@ -408,9 +408,9 @@ scheduler_events = {
         "15 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_2",
 		],
-        # "30 22 * * *": [
-		# 	"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_3",
-		# ],
+        "30 22 * * *": [
+			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_3",
+		],
         "45 22 * * *": [
 			"erpnext.projects.doctype.timesheet.timesheet.process_handle_timesheet_from_sheet_team_4",
 		],
