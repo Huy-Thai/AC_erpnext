@@ -67,12 +67,19 @@ class GGSheet(metaclass=SingletonMeta):
 
         return new_rows
     async def get_all_row_values(self, seed):
+        rows = []
         if self.client_agc is None or self.worksheet is None:
             await self.open_worksheet()
 
-        values = await self.worksheet.get_all_values()
+        all_values = await self.worksheet.get_all_values()
+        for r in all_values:
+            row = {}
+            for idx, value in enumerate(r):
+                column = excel_style(None, idx + seed)
+                row[column] = value
+            rows.append(row)
 
-        return values
+        return rows
 
 
 def mapping_cell_with_dates_raw(cell, row_date):
