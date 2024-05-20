@@ -55,7 +55,7 @@ class GGSheet(metaclass=SingletonMeta):
         worksheet_res = await sheet.worksheet(self.worksheet_name)
         self.worksheet = worksheet_res
 
-    async def get_values_with_excel_style(self, num_of_row, seed):
+    async def get_values_with_excel_style(self, num_of_row, seed=1):
         new_rows = {}
         if self.client_agc is None or self.worksheet is None:
             await self.open_worksheet()
@@ -66,7 +66,8 @@ class GGSheet(metaclass=SingletonMeta):
             new_rows[column] = value
 
         return new_rows
-    async def get_all_row_values(self, seed):
+        
+    async def get_all_row_values(self, seed=1):
         rows = []
         if self.client_agc is None or self.worksheet is None:
             await self.open_worksheet()
@@ -80,7 +81,12 @@ class GGSheet(metaclass=SingletonMeta):
             rows.append(row)
 
         return rows
+    async def get_all_records(self, seed=1):
+        if self.client_agc is None or self.worksheet is None:
+            await self.open_worksheet()
 
+        all_records = await self.worksheet.get_all_records()
+        return all_records
 
 def mapping_cell_with_dates_raw(cell, row_date):
     new_date = {}
