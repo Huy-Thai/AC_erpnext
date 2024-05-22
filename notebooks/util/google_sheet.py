@@ -47,6 +47,12 @@ class GGSheet(metaclass=SingletonMeta):
         ])
         return scoped
 
+    async def set_worksheet(self, new_url, new_worksheet_name):
+        self.url_file = new_url
+        self.worksheet_name = new_worksheet_name
+        # self.worksheet = None
+        await self.open_worksheet()
+
     async def open_worksheet(self):
         agcm = gspread_asyncio.AsyncioGspreadClientManager(self.__credentials)
         agc = await agcm.authorize()
@@ -81,12 +87,21 @@ class GGSheet(metaclass=SingletonMeta):
             rows.append(row)
 
         return rows
+        
     async def get_all_records(self, seed=1):
         if self.client_agc is None or self.worksheet is None:
             await self.open_worksheet()
 
         all_records = await self.worksheet.get_all_records()
         return all_records
+
+    async def get_row_date_header(self,
+                                  row_of_date,
+                                  ignore_values = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"],
+                                  seed=1):
+        date_values = await self.get_values_with_excel_style(num_of_row=row_of_date, seed=seed)
+        row_date_values = {k: v for k, v in date_values.items() if k not in ignore_values}
+        return row_date_values
 
 def mapping_cell_with_dates_raw(cell, row_date):
     new_date = {}
