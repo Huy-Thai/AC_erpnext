@@ -60,10 +60,10 @@ class Ts():
             print(f"Cannot get task doc due fields empty")
             return None
         
-    
         filters = [["subject", "=", payload["subject"]],
                    ["project", "=", payload["project_code"]], 
-                   ["type", "=", payload["phase_name"]],
+                   # ["type", "=", payload["phase_name"]],
+                   ["custom_activity", "=", payload["activity_code"]],
                    ["is_group", "=", payload["is_group"]]]
         if payload.get("parent_task"):
             filters.append(["parent_task", "=", payload["parent_task"]])
@@ -90,7 +90,8 @@ class Ts():
                                       [["employee", "=", payload['employee_code']],
                                        ["parent_project", "=", payload['project_code']],
                                        ["custom_task", "=", payload['task']],
-                                       ["custom_phase", "=", payload['phase_name']]])
+                                       # ["custom_phase", "=", payload['phase_name']],
+                                       ["custom_activity", "=", payload["activity_code"]]])
         
         return doc_name
 
@@ -101,12 +102,20 @@ class Ts():
         doc["subject"] = payload["subject"]
         doc["project"] = payload["project_code"]
         doc["type"] = payload["phase_name"]
+        doc["custom_activity"] = payload["activity_code"]
         doc["is_group"] = payload["is_group"]
+        doc["progress"] = payload["progress"]
+        doc["status"] = payload["task_status"]
         if payload.get("parent_task"):
             doc["parent_task"] = payload["parent_task"]
         
         return self.conn.insert(doc)
         # pass
+    def update_task(self, doc, payload):
+        payload["doctype"] = "Task"
+        payload["name"] = doc["name"]
+        return self.conn.update(payload)
+        
 
     def create_timesheet(self, payload):
         self.conn.insert(payload)
