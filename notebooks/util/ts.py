@@ -90,6 +90,8 @@ class Ts():
                                       [["employee", "=", payload['employee_code']],
                                        ["parent_project", "=", payload['project_code']],
                                        ["custom_task", "=", payload['task']],
+                                       ["custom_parent_task", "=", payload['parent_task']],
+                                       ["custom_timelog", "=", payload['timelog']],
                                        # ["custom_phase", "=", payload['phase_name']],
                                        ["custom_activity", "=", payload["activity_code"]]])
         

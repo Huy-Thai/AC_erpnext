@@ -94,12 +94,12 @@ def mapping_row_with_attr(row_data):
 
 def mapping_row_with_time_log(row_data, row_date_header):
     new_date = {}
-    date_string = ""
+    date_string = []
     for column, value in row_data.items():
         if column in row_date_header and value != None and value != "":
             date = parser.parse(row_date_header[column])
             new_date[date] = value
-            date_string = date_string + column + "-" + value + ";"
+            date_string.append(f"{row_date_header[column]}")
     return new_date, date_string
 
 def is_row_empty(row_attrs):
